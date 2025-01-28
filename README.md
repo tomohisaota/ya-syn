@@ -69,23 +69,11 @@ npm install ya-syn
     - Main synchronizer to limit number of concurrent requests to 3
     - Per host synchronizer to limit number of concurrent requests to same host to 1
 
-### Use case: CacheProvider
+### Use case: [CacheProvider](test/samples/cache-provider.test.ts)
 
 - Object cache with asynchronous factory callback
 - You can specify default TTL
 - You can override ttl when you get cache
-
-```typescript
-const cache = gsp.createCachedProvider({
-    factory: async () => {
-        await sleep(300)
-        return "cached"
-    },
-    defaultTTL: 500
-})
-const cachedObj = await cache.get() // get using defaultTTL
-const latestObj = await cache.get(0) // override ttl
-```
 
 # Other useful components
 
@@ -108,8 +96,10 @@ const latestObj = await cache.get(0) // override ttl
 
 # Version History
 
+- 1.0.1
+  - Update README
 - 1.0.0
-    - Initial Release
+  - Initial Release
 
 # Next Step
 

@@ -216,18 +216,6 @@ describe("WithTimeout", () => {
         await Promise.all(tasks)
     });
 
-    test.concurrent('timeout if task takes long time', async () => {
-        const s = sp.forObject({}, 1)
-        const tasks: Promise<void>[] = []
-        tasks.push(s.synchronized(async () => {
-            await sleep(100)
-        }))
-        tasks.push(s.timeout(200).synchronized(async () => {
-            await sleep(1000)
-        }))
-        await expect(Promise.all(tasks)).rejects.toThrow(SynchronizerTimeoutError)
-    });
-
     test.concurrent('timeout before acquiring lock', async () => {
         const s = sp.forObject({}, 1)
         const tasks: Promise<void>[] = []

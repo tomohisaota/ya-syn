@@ -1,6 +1,6 @@
 {
   "name": "ya-syn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Yet Another Synchronizer for TypeScript.",
   "main": "./dist/index.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "clean": "rm -r dist",
     "deploy": "npm run build&&npm publish&&npm run clean"
   },
+  "repository": "github:tomohisaota/ya-syn.git",
   "author": "Tomohisa Ota",
   "license": "MIT",
   "devDependencies": {
