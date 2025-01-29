@@ -55,4 +55,13 @@ export class CachedProvider<T> {
             }
         })
     }
+
+
+    /*
+    Utility method
+    Capture variables in function chain
+     */
+    static capture<V, T>(params: V, cb: (params: V) => T) {
+        return cb(params)
+    }
 }

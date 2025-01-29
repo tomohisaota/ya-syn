@@ -1,5 +1,6 @@
 import {SynchronizerProvider} from "../src";
 import {sleep} from "./utils";
+import {CachedProvider} from "../src/CachedProvider";
 
 
 describe("CachedProvider", () => {
@@ -76,5 +77,26 @@ describe("CachedProvider", () => {
             cache.get(),
             cache.get(),
         ])).toEqual([1, 1, 1, 1, 1])
+    });
+
+    test.concurrent('with capture', async () => {
+        let count = 0
+        const cache = CachedProvider.capture({
+            variable1: new Set<number>()
+        }, ({variable1}) => sp
+            .createCachedProvider({
+                factory: async () => {
+                    const i = count++
+                    variable1.add(i)
+                    expect(variable1.size).toBe(count)
+                    return i
+                }
+            }))
+        expect(await cache.get(100)).toBe(0)
+        await sleep(10) // still in cache
+        expect(await cache.get(100)).toBe(0)
+        await sleep(100) // wait until cache expires
+        expect(await cache.get(100)).toBe(1)
+        expect(count).toBe(2)
     });
 })
