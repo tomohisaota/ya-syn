@@ -1,7 +1,7 @@
 import {CoreSemaphore} from "./CoreSemaphore";
 import {LazyReentrantCallback} from "./ReentrantDetector";
 import {SynchronizerEventType} from "./types";
-import {SynchronizerReentrantExecutionError} from "./errors";
+import {SynchronizerReentrantExecutionError, SynchronizerThrottleError} from "./errors";
 
 class SynchronizerCancelError extends Error {
 }
@@ -9,6 +9,7 @@ class SynchronizerCancelError extends Error {
 export class Semaphore extends CoreSemaphore {
 
     protected readonly _reentrantCallback = new LazyReentrantCallback()
+    private _runningWithoutReenter = 0
 
     constructor(concurrentExecution: number, readonly raiseOnReentrant = false) {
         super(concurrentExecution)
@@ -16,9 +17,9 @@ export class Semaphore extends CoreSemaphore {
 
     async synchronized(cb: (isReentrant: boolean) => Promise<void>, params?: {
         onEvent?: (type: SynchronizerEventType) => void
-        isCanceled?: () => boolean
+        isCanceled?: () => boolean,
+        throttle?: boolean
     }): Promise<void> {
-        params?.onEvent?.("Acquire")
         const r = await this._reentrantCallback.get()
         return new Promise((resolve, reject) => {
             r((isReentrant) => {
@@ -33,6 +34,13 @@ export class Semaphore extends CoreSemaphore {
                     })
                     return
                 }
+                if (params?.throttle && (this._runningWithoutReenter >= this.concurrentExecution)) {
+                    params?.onEvent?.("Throttle")
+                    reject(new SynchronizerThrottleError())
+                    return
+                }
+                params?.onEvent?.("Acquire")
+                this._runningWithoutReenter++
                 super.synchronized(() => {
                     if (params?.isCanceled?.()) {
                         // Canceled before execution
@@ -52,6 +60,8 @@ export class Semaphore extends CoreSemaphore {
                         params?.onEvent?.("Finish")
                         reject(e)
                     }
+                }).finally(() => {
+                    this._runningWithoutReenter--
                 })
             })
         })

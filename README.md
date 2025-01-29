@@ -21,7 +21,7 @@ stateDiagram-v2
         Acquired --> Release
     }
     Release --> Finish
-    Acquire --> Enter
+    [*] --> Enter
     state Reenter {
         direction LR
         Enter --> Exit
@@ -97,6 +97,8 @@ npm install ya-syn
 
 # Version History
 
+- 1.1.1
+    - Fix bug in handling reenter with throttling
 - 1.1.0
     - Add capture utility method to CachedProvider(#5)
     - Add reentrant entry detector to LazyInitializer(#3)

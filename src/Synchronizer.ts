@@ -26,6 +26,7 @@ type SynchronizerSynchronizedParamsFull<T> = {
     executionId?: string
     cb: SynchronizerCallback<T>,
     isCanceled?: () => boolean
+    throttle?: boolean,
 }
 
 export type SynchronizerSynchronizedParams<T> = SynchronizerCallback<T> | SynchronizerSynchronizedParamsFull<T>
@@ -59,7 +60,7 @@ export class Synchronizer {
     }
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
-        const {cb, executionId, isCanceled} = toFullParam(params)
+        const {cb, executionId, isCanceled, throttle} = toFullParam(params)
         const context: SynchronizerContext = {
             providerId: this.providerId,
             synchronizerId: this.synchronizerId,
@@ -67,18 +68,22 @@ export class Synchronizer {
         }
         return new Promise<T>((resolve, reject) => {
             this._semaphore.synchronized((): Promise<void> => {
-                return cb(context).then(resolve).catch((e) => {
-                    if (e instanceof SynchronizerReentrantExecutionError) {
-                        // Add context to the error
-                        reject(new SynchronizerReentrantExecutionError(context))
-                    } else {
-                        reject(e)
-                    }
-                })
+                return cb(context).then(resolve).catch(reject)
             }, {
                 isCanceled: isCanceled,
                 onEvent: (eventType) => {
                     this.emitEvent(eventType, context)
+                },
+                throttle,
+            }).catch(e => {
+                if (e instanceof SynchronizerReentrantExecutionError) {
+                    // Add context to the error
+                    reject(new SynchronizerReentrantExecutionError(context))
+                } else if (e instanceof SynchronizerThrottleError) {
+                    // Add context to the error
+                    reject(new SynchronizerThrottleError(context))
+                } else {
+                    reject(e)
                 }
             })
         })
@@ -138,28 +143,10 @@ class WithThrottle {
     }
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
-        const {executionId} = toFullParam(params)
-        const {synchronizer} = this._params
-        const {stats} = this._params.synchronizer
-        if (stats.numberOfRunningTasks >= stats.maxConcurrentExecution) {
-            const context = toContext(synchronizer, executionId)
-            synchronizer.emitEvent("Throttle", context)
-            return Promise.reject(new SynchronizerThrottleError(context))
-        } else if (stats.numberOfTasks >= stats.maxConcurrentExecution) {
-            // Some tasks are in Acquire to Acquired transition
-            return new Promise<T>((resolve, reject) => {
-                // process.nextTick may be better, but not sure if it works on browser
-                setTimeout(() => {
-                    if (stats.numberOfRunningTasks >= stats.maxConcurrentExecution) {
-                        const context = toContext(synchronizer, executionId)
-                        synchronizer.emitEvent("Throttle", context)
-                        return reject(new SynchronizerThrottleError(context))
-                    }
-                    this._params.synchronizer.synchronized(params).then(resolve).catch(reject)
-                }, 0)
-            })
-        }
-        return this._params.synchronizer.synchronized(params)
+        return this._params.synchronizer.synchronized({
+            ...toFullParam(params),
+            throttle: true
+        })
     }
 }
 
