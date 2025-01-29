@@ -15,6 +15,7 @@ export type SynchronizerCallback<T> = (context: SynchronizerContext) => Promise<
 export type SynchronizerEventType =
     "Acquire"
     | "Acquired"
+    | "Cancel"
     | "Enter"
     | "Exit"
     | "Release"

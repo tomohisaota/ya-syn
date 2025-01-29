@@ -98,12 +98,12 @@ npm install ya-syn
 # Version History
 
 - 1.1.0
-  - Add capture utility method to CachedProvider(#5)
-  - Work in progress
+    - Add capture utility method to CachedProvider(#5)
+    - Add reentrant entry detector to LazyInitializer(#3)
 - 1.0.1
-  - Fix event handling leak
+    - Fix event handling leak
 - 1.0.0
-  - Initial Release
+    - Initial Release
 
 # Next Step
 

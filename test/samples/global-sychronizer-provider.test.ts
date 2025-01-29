@@ -1,5 +1,4 @@
-import {LazyInitializer, SynchronizerProvider} from "../../src";
-import {sleep} from "../utils";
+import {SynchronizerProvider} from "../../src";
 
 /*
 Synchronizer provider for samples

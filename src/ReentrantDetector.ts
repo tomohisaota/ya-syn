@@ -1,10 +1,7 @@
-import {SynchronizerContext} from "./types";
-import {LazyInitializer} from "./LazyInitializer";
+import {CoreLazyInitializer} from "./CoreLazyInitializer";
 
-type ReentrantDetectorType = "None" | "AsyncLocalStorage"
-
-type ReentrantDetectorCallback = (reentrant: boolean, type: ReentrantDetectorType) => void
-type ReentrantDetector = (context: SynchronizerContext, cb: ReentrantDetectorCallback) => void
+type ReentrantDetectorCallback = (reentrant: boolean) => void
+type ReentrantDetector = (cb: ReentrantDetectorCallback) => void
 type ReentrantDetectorFactory = () => ReentrantDetector
 type ReentrantDetectorFactoryLazyFactory = () => Promise<ReentrantDetectorFactory>
 
@@ -15,16 +12,16 @@ const usingAsyncLocalStorage: ReentrantDetectorFactoryLazyFactory = () => {
             class ReentrantMarker {
                 protected readonly storage = new module.AsyncLocalStorage<boolean>()
 
-                run(_context: SynchronizerContext, cb: ReentrantDetectorCallback): void {
+                run(cb: ReentrantDetectorCallback): void {
                     const SYNCHRONIZED = true
                     if (this.storage.getStore() === SYNCHRONIZED) {
                         // Already in synchronized context
                         // Just run the callback
-                        cb(true, "AsyncLocalStorage")
+                        cb(true)
                     } else {
                         // First call
                         // Mark and run the callback
-                        this.storage.run(SYNCHRONIZED, () => cb(false, "AsyncLocalStorage"))
+                        this.storage.run(SYNCHRONIZED, () => cb(false))
                     }
                 }
 
@@ -40,10 +37,10 @@ const usingAsyncLocalStorage: ReentrantDetectorFactoryLazyFactory = () => {
 
 const usingNoCheck: ReentrantDetectorFactoryLazyFactory = async () => {
     return () =>
-        (_context: SynchronizerContext, cb: ReentrantDetectorCallback) => cb(false, "None")
+        (cb: ReentrantDetectorCallback) => cb(false)
 }
 
-export class LazyReentrantCallbackFactory extends LazyInitializer<ReentrantDetectorFactory> {
+export class LazyReentrantCallbackFactory extends CoreLazyInitializer<ReentrantDetectorFactory> {
     constructor() {
         super(async () => {
             if (isNode()) {
@@ -58,7 +55,7 @@ export class LazyReentrantCallbackFactory extends LazyInitializer<ReentrantDetec
 
 const lazyReentrantCallbackFactory = new LazyReentrantCallbackFactory()
 
-export class LazyReentrantCallback extends LazyInitializer<ReentrantDetector> {
+export class LazyReentrantCallback extends CoreLazyInitializer<ReentrantDetector> {
     constructor() {
         super(async () => {
             const f = await lazyReentrantCallbackFactory.get()
