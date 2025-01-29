@@ -1,27 +1,13 @@
 import {Semaphore} from "./Semaphore";
-import {SynchronizerInvalidError} from "./errors";
+import {CoreLazyInitializer} from "./CoreLazyInitializer";
 
-export class LazyInitializer<T> {
+/*
+LazyInitializer with reentrant checking.
+In general, reentrant into initializer indicates circular dependency
+ */
+export class LazyInitializer<T> extends CoreLazyInitializer<T> {
 
-    protected _target: T | undefined
-    protected _synchronizer = new Semaphore(1)
-
-    constructor(protected readonly _factory: () => Promise<T>) {
-    }
-
-    async get(): Promise<T> {
-        if (this._target !== undefined) {
-            return this._target
-        }
-        await this._synchronizer.synchronized(async () => {
-            if (this._target === undefined) {
-                this._target = await this._factory()
-            }
-        })
-        // this._target cannot be undefined unless factory returns undefined
-        if (this._target === undefined) {
-            throw new SynchronizerInvalidError("factory returned undefined")
-        }
-        return this._target
+    constructor(readonly factory: () => Promise<T>) {
+        super(factory, new Semaphore(1, true)) // raise on reentrant
     }
 }

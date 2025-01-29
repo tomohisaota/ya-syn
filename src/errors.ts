@@ -46,6 +46,15 @@ export class SynchronizerInvalidError extends SynchronizerError {
     }
 }
 
+export class SynchronizerReentrantExecutionError extends SynchronizerError {
+    constructor(context?: Readonly<SynchronizerContext>) {
+        super({
+            code: "ReentrantExecution",
+            context
+        });
+    }
+}
+
 function errorMessage(code: string, context?: Readonly<SynchronizerContext>): string {
     if (context === undefined) {
         return `Synchronizer${code}Error`

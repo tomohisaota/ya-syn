@@ -1,47 +1,59 @@
-import {SynchronizerInvalidError} from "./errors";
+import {CoreSemaphore} from "./CoreSemaphore";
+import {LazyReentrantCallback} from "./ReentrantDetector";
+import {SynchronizerEventType} from "./types";
+import {SynchronizerReentrantExecutionError} from "./errors";
 
-export class Semaphore {
+class SynchronizerCancelError extends Error {
+}
 
-    protected _running = 0
-    protected readonly _pendingTaskQueue: (() => Promise<void>)[] = []
+export class Semaphore extends CoreSemaphore {
 
-    constructor(readonly concurrentExecution: number) {
-        if (!Number.isInteger(concurrentExecution)) {
-            throw new SynchronizerInvalidError(`concurrentExecution should be integer value, concurrentExecution=${concurrentExecution}`)
-        }
-        if (concurrentExecution < 1) {
-            throw new SynchronizerInvalidError(`concurrentExecution should be equal or greater than 1, concurrentExecution=${concurrentExecution}`)
-        }
+    protected readonly _reentrantCallback = new LazyReentrantCallback()
+
+    constructor(concurrentExecution: number, readonly raiseOnReentrant = false) {
+        super(concurrentExecution)
     }
 
-    synchronized(cb: () => Promise<void>): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const task = () => {
-                return cb().then(resolve).catch(reject)
-            }
-            if (this._running < this.concurrentExecution) {
-                // Do it now!
-                this.run(task)
-            } else {
-                // wait in the queue
-                this._pendingTaskQueue.push(task)
-            }
-            return task
-        })
-
-    }
-
-    protected run(cb: () => Promise<void>) {
-        this._running++
-        cb().finally(() => {
-            this._running--
-            if (this._pendingTaskQueue.length > 0) {
-                // finally, it's my time!
-                const task = this._pendingTaskQueue.shift()
-                if (task !== undefined) {
-                    this.run(task)
+    async synchronized(cb: (isReentrant: boolean) => Promise<void>, params?: {
+        onEvent?: (type: SynchronizerEventType) => void
+        isCanceled?: () => boolean
+    }): Promise<void> {
+        params?.onEvent?.("Acquire")
+        const r = await this._reentrantCallback.get()
+        return new Promise((resolve, reject) => {
+            r((isReentrant) => {
+                if (isReentrant) {
+                    if (this.raiseOnReentrant) {
+                        throw new SynchronizerReentrantExecutionError()
+                    }
+                    params?.onEvent?.("Enter")
+                    cb(true).then(resolve).catch(reject).finally(() => {
+                        params?.onEvent?.("Exit")
+                        params?.onEvent?.("Finish")
+                    })
+                    return
                 }
-            }
+                super.synchronized(() => {
+                    if (params?.isCanceled?.()) {
+                        // Canceled before execution
+                        return Promise.reject(new SynchronizerCancelError())
+                    }
+                    params?.onEvent?.("Acquired")
+                    return cb(false)
+                }).then(() => {
+                    params?.onEvent?.("Release")
+                    params?.onEvent?.("Finish")
+                    resolve()
+                }).catch((e) => {
+                    if (e instanceof SynchronizerCancelError) {
+                        resolve(Promise.resolve())
+                    } else {
+                        params?.onEvent?.("Release")
+                        params?.onEvent?.("Finish")
+                        reject(e)
+                    }
+                })
+            })
         })
     }
 
