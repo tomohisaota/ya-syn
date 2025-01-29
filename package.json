@@ -11,6 +11,17 @@
   },
   "repository": "github:tomohisaota/ya-syn.git",
   "author": "Tomohisa Ota",
+  "keywords": [
+    "lock",
+    "mutex",
+    "semaphore",
+    "synchronize",
+    "concurrency",
+    "async",
+    "cache",
+    "throttle",
+    "timeout"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.12",
