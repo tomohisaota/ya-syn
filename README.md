@@ -59,12 +59,13 @@ npm install ya-syn
 ### Use case: [Instance Synchronizer](test/samples/lock-by-instance.test.ts)
 
 - You can obtain synchronizer for given class
-- Synchroinzer provider keeps weak ref to the key object. When the object get freed, synchronizer instance will be freed too
+- Synchroinzer provider keeps weak ref to the key object. When the object get freed, synchronizer instance will be freed
+  too
 
 ### Use case: [Key Synchronizer](test/samples/lock-by-key.test.ts)
 
 - synchronizer provider keeps string to synchronizer map
-  - Note: This mapping is not weak reference.
+    - Note: This mapping is not weak reference.
 - You can nest multiple synchronizer
     - Main synchronizer to limit number of concurrent requests to 3
     - Per host synchronizer to limit number of concurrent requests to same host to 1
@@ -96,8 +97,11 @@ npm install ya-syn
 
 # Version History
 
+- 1.1.0
+  - Add capture utility method to CachedProvider(#5)
+  - Work in progress
 - 1.0.1
-  - Update README
+  - Fix event handling leak
 - 1.0.0
   - Initial Release
 
