@@ -5,9 +5,8 @@ import {
     SynchronizerProviderParams,
     SynchronizerStats
 } from "./types";
-import {LazyReentrantCallback} from "./ReentrantDetector";
+import {SynchronizerReentrantExecutionError, SynchronizerThrottleError, SynchronizerTimeoutError} from "./errors";
 import {Semaphore} from "./Semaphore";
-import {SynchronizerThrottleError, SynchronizerTimeoutError} from "./errors";
 
 /*
 
@@ -17,17 +16,16 @@ It is possible to enter synchronized block recursively.
 
  */
 
-class SynchronizerCancelError extends Error {
-}
-
 type SynchronizerParams = SynchronizerProviderParams
     & Pick<SynchronizerContext, "synchronizerId">
-    & Partial<Pick<SynchronizerStats, "maxConcurrentExecution">>
+    & Partial<Pick<SynchronizerStats, "maxConcurrentExecution">> & {
+    readonly raiseOnReentrant?: boolean
+}
 
 type SynchronizerSynchronizedParamsFull<T> = {
     executionId?: string
     cb: SynchronizerCallback<T>,
-    canceled?: () => boolean
+    isCanceled?: () => boolean
 }
 
 export type SynchronizerSynchronizedParams<T> = SynchronizerCallback<T> | SynchronizerSynchronizedParamsFull<T>
@@ -36,12 +34,11 @@ export class Synchronizer {
 
     protected readonly _semaphore
     protected readonly _stats: SynchronizerStats
-    protected readonly _reentrantCallback = new LazyReentrantCallback()
 
     constructor(readonly params: SynchronizerParams
     ) {
         const maxConcurrentExecution = params.maxConcurrentExecution ?? 1
-        this._semaphore = new Semaphore(maxConcurrentExecution)
+        this._semaphore = new Semaphore(maxConcurrentExecution, params.raiseOnReentrant)
         this._stats = {
             maxConcurrentExecution,
             numberOfRunningTasks: 0,
@@ -62,46 +59,28 @@ export class Synchronizer {
     }
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
-        const {cb, executionId, canceled} = toFullParam(params)
+        const {cb, executionId, isCanceled} = toFullParam(params)
         const context: SynchronizerContext = {
             providerId: this.providerId,
             synchronizerId: this.synchronizerId,
             executionId,
         }
-        this.emitEvent("Acquire", context)
         return new Promise<T>((resolve, reject) => {
-            this._reentrantCallback.get().then((reentrant) => {
-                reentrant(context, (isReentrant, _reentrantCallbackType) => {
-                    if (isReentrant) {
-                        // Already in synchronized context
-                        // Just run the callback to avoid deadlock
-                        this.emitEvent("Enter", context)
-                        cb(context).then(resolve).catch(reject).finally(() => {
-                            this.emitEvent("Exit", context)
-                            this.emitEvent("Finish", context)
-                        })
+            this._semaphore.synchronized((): Promise<void> => {
+                return cb(context).then(resolve).catch((e) => {
+                    if (e instanceof SynchronizerReentrantExecutionError) {
+                        // Add context to the error
+                        reject(new SynchronizerReentrantExecutionError(context))
                     } else {
-                        // Not in synchronized context yet
-                        // Run async call in synchronized context
-                        this._semaphore.synchronized((): Promise<void> => {
-                            if (canceled !== undefined && canceled()) {
-                                // skip execution, use special Error type to bypass catch handler
-                                return Promise.reject(new SynchronizerCancelError())
-                            }
-                            this.emitEvent("Acquired", context)
-                            return cb(context).then(resolve).catch(reject)
-                        }).then(() => {
-                            this.emitEvent("Release", context)
-                            this.emitEvent("Finish", context)
-                        }).catch((e) => {
-                            if (!(e instanceof SynchronizerCancelError)) {
-                                this.emitEvent("Release", context)
-                                this.emitEvent("Finish", context)
-                            }
-                        })
+                        reject(e)
                     }
                 })
-            }).catch(reject)
+            }, {
+                isCanceled: isCanceled,
+                onEvent: (eventType) => {
+                    this.emitEvent(eventType, context)
+                }
+            })
         })
     }
 
@@ -203,7 +182,7 @@ class WithTimeout {
         return Promise.race([
             synchronizer.synchronized({
                 executionId,
-                canceled: () => state === "timeout",
+                isCanceled: () => state === "timeout",
                 cb: (context) => {
                     return new Promise<T>((resolve, reject) => {
                         if (state === "waiting") {

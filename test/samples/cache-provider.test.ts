@@ -1,5 +1,6 @@
 import {sleep} from "../utils";
 import {SynchronizerEvent, SynchronizerProvider} from "../../src";
+import {CachedProvider} from "../../src/CachedProvider";
 
 const prefix = "Cache Provider"
 describe(prefix, () => {
@@ -46,6 +47,32 @@ describe(prefix, () => {
         ])).toEqual([1, 1])
     })
 
+    test("with capture", async () => {
+        let counter = 0
+        const cache = CachedProvider.capture({
+                // capture variables for factory callback
+                // those variables lives across multiple function calls
+                variable1: new Set<number>()
+            }, ({variable1}) => sp.createCachedProvider({
+                factory: async () => {
+                    await sleep(300)
+                    variable1.add(counter)
+                    console.log(`variable1 = ${Array.from(variable1)}`)
+                    return counter++
+                },
+                defaultTTL: 500
+            })
+        )
+        expect(await Promise.all([
+            cache.get(),
+            cache.get(100)
+        ])).toEqual([0, 0])
+        await sleep(500)
+        expect(await Promise.all([
+            cache.get(),
+            cache.get(100)
+        ])).toEqual([1, 1])
+    })
 })
 
 

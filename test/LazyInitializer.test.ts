@@ -1,4 +1,4 @@
-import {LazyInitializer} from "../src";
+import {LazyInitializer, SynchronizerReentrantExecutionError} from "../src";
 
 
 describe("LazyInitializer", () => {
@@ -43,5 +43,25 @@ describe("LazyInitializer", () => {
         }
         await Promise.allSettled(tasks)
         expect(count).toBe(100)
+    });
+
+    test.concurrent('circular dependency', async () => {
+        class TestClass {
+            a = new LazyInitializer<void>(async () => {
+                await this.b.get()
+            })
+            b = new LazyInitializer<void>(async () => {
+                await this.a.get()
+            })
+            c = new LazyInitializer<void>(async () => {
+                await this.c.get()
+            })
+        }
+
+        const t = new TestClass()
+        // a->b->a
+        await expect(t.a.get()).rejects.toThrow(SynchronizerReentrantExecutionError)
+        // c->c
+        await expect(t.c.get()).rejects.toThrow(SynchronizerReentrantExecutionError)
     });
 })
