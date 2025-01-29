@@ -163,6 +163,7 @@ describe("ClassWithInstanceSynchronizer", () => {
 describe("WithThrottle", () => {
     const sp = new SynchronizerProvider({
         providerId: "WithThrottle",
+        onEvent: e => console.log(e)
     })
     test.concurrent('without throttle', async () => {
         const s = sp.forObject({}, 2)
@@ -186,6 +187,24 @@ describe("WithThrottle", () => {
             tasks.push(s.throttle().synchronized(async () => {
                 count++
                 await sleep(10)
+            }))
+        }
+        const results = await Promise.allSettled(tasks)
+        console.log(results)
+        expect(results.filter(i => i.status === "fulfilled").length).toBe(2)
+        expect(count).toBe(2)
+    });
+
+    test.concurrent('with throttle + reenter', async () => {
+        const s = sp.forObject({}, 2)
+        const tasks: Promise<void>[] = []
+        let count = 0
+        for (let i = 0; i < 10; i++) {
+            tasks.push(s.throttle().synchronized(async () => {
+                await s.throttle().synchronized(async () => {
+                    count++
+                    await sleep(10)
+                })
             }))
         }
         const results = await Promise.allSettled(tasks)
