@@ -19,13 +19,13 @@ stateDiagram-v2
     Acquire --> Acquired
     state Synchronized {
         Acquired --> Release
+        state Reenter {
+            direction LR
+            Enter --> Exit
+        }
     }
     Release --> Finish
     [*] --> Enter
-    state Reenter {
-        direction LR
-        Enter --> Exit
-    }
     Exit --> Finish
     Finish --> [*]
 ```
