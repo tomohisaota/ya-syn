@@ -34,7 +34,6 @@ export class CachedProvider<T> {
             }
         }
         return this._synchronizer.synchronized({
-            executionId: `ttl:${ttl} requestedAt:${requestedAt} cachedAt:${this._cache?.cachedAt}`,
             cb: async () => {
                 // Check with lock
                 if (this._cache) {

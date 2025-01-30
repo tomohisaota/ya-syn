@@ -15,7 +15,7 @@ describe("Async Instance Variable", () => {
         }
     }
 
-    test.concurrent("test", async () => {
+    test("test", async () => {
         const i = new Sample()
         // initializer called only once
         expect(await Promise.all([
