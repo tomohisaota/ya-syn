@@ -99,6 +99,7 @@ npm install ya-syn
 
 - 1.1.2
     - Use weak ref for string key based synchronizer provider
+    - Set default provider/synchronizer/execution id to uuid
 - 1.1.1
     - Fix bug in handling reenter with throttling
 - 1.1.0
