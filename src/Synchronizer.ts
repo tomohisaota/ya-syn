@@ -5,7 +5,12 @@ import {
     SynchronizerProviderParams,
     SynchronizerStats
 } from "./types";
-import {SynchronizerReentrantExecutionError, SynchronizerThrottleError, SynchronizerTimeoutError} from "./errors";
+import {
+    SynchronizerInvalidError,
+    SynchronizerReentrantExecutionError,
+    SynchronizerThrottleError,
+    SynchronizerTimeoutError
+} from "./errors";
 import {Semaphore} from "./Semaphore";
 
 /*
@@ -17,8 +22,8 @@ It is possible to enter synchronized block recursively.
  */
 
 type SynchronizerParams = SynchronizerProviderParams
-    & Pick<SynchronizerContext, "synchronizerId">
     & Partial<Pick<SynchronizerStats, "maxConcurrentExecution">> & {
+    readonly synchronizerId?: string,
     readonly raiseOnReentrant?: boolean
 }
 
@@ -35,6 +40,8 @@ export class Synchronizer {
 
     protected readonly _semaphore
     protected readonly _stats: SynchronizerStats
+    public readonly providerId: string
+    public readonly synchronizerId: string
 
     constructor(readonly params: SynchronizerParams
     ) {
@@ -45,14 +52,8 @@ export class Synchronizer {
             numberOfRunningTasks: 0,
             numberOfTasks: 0,
         }
-    }
-
-    get providerId() {
-        return this.params.providerId
-    }
-
-    get synchronizerId() {
-        return this.params.synchronizerId
+        this.providerId = this.params.providerId ?? crypto.randomUUID()
+        this.synchronizerId = params.synchronizerId ?? crypto.randomUUID()
     }
 
     get stats(): Readonly<SynchronizerStats> {
@@ -61,6 +62,10 @@ export class Synchronizer {
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
         const {cb, executionId, isCanceled, throttle} = toFullParam(params)
+        if (executionId === undefined) {
+            // this shouldn't happen
+            throw new SynchronizerInvalidError("executionId is not defined")
+        }
         const context: SynchronizerContext = {
             providerId: this.providerId,
             synchronizerId: this.synchronizerId,
@@ -101,8 +106,6 @@ export class Synchronizer {
                 break
             case "Release":
                 this._stats.numberOfRunningTasks--
-                break
-            case "Finish":
                 this._stats.numberOfTasks--
                 break
             case "Timeout":
@@ -164,7 +167,12 @@ class WithTimeout {
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
         const {synchronizer, timeout} = this._params
-        const {cb, executionId} = toFullParam(params)
+        params = toFullParam(params)
+        const {cb, executionId} = params
+        if (executionId === undefined) {
+            // this shouldn't happen
+            throw new SynchronizerInvalidError("executionId is not defined")
+        }
         let state: "waiting" | "timeout" | "started" = "waiting"
         return Promise.race([
             synchronizer.synchronized({
@@ -198,15 +206,20 @@ class WithTimeout {
 }
 
 function toFullParam<T>(params: SynchronizerSynchronizedParams<T>): SynchronizerSynchronizedParamsFull<T> {
+    const executionId = crypto.randomUUID()
     if (!("cb" in params)) {
         return ({
+            executionId,
             cb: params
         })
     }
-    return params
+    return {
+        executionId,
+        ...params
+    }
 }
 
-function toContext(s: Synchronizer, executionId?: string): SynchronizerContext {
+function toContext(s: Synchronizer, executionId: string): SynchronizerContext {
     return {
         providerId: s.providerId,
         synchronizerId: s.synchronizerId,

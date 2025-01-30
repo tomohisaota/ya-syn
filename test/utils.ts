@@ -1,5 +1,17 @@
-import {Semaphore} from "../src/Semaphore"
+import {Semaphore, SynchronizerProvider} from "../src"
 import {Synchronizer} from "../src/Synchronizer";
+import {StateTransitionChecker} from "./StateTransitionChecker";
+import path from "node:path";
+
+export function createSynchronizerProvider(filename: string) {
+    const checker = new StateTransitionChecker()
+
+    const sp = new SynchronizerProvider({
+        providerId: path.basename(filename),
+        onEvent: checker.fn
+    })
+    return {checker, sp}
+}
 
 export class TestClass {
     counter = 0

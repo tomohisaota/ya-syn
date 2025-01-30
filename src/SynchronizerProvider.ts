@@ -7,7 +7,7 @@ import {CachedProvider} from "./CachedProvider";
 export class SynchronizerProvider {
     protected id = 0
     protected weakCacheProvider = new WeakCacheProvider<Synchronizer>()
-    protected keyToSynchronizer = new Map<string, Synchronizer>()
+    protected keyToSynchronizer = new Map<string, WeakRef<Synchronizer>>()
 
     constructor(readonly params?: SynchronizerProviderParams) {
     }
@@ -20,16 +20,22 @@ export class SynchronizerProvider {
     }
 
     forKey(key: string, maxConcurrentExecution?: number): Synchronizer {
-        let s = this.keyToSynchronizer.get(key)
-        if (s) {
-            return s
+        let wRef = this.keyToSynchronizer.get(key)
+        if (wRef) {
+            const sRef = wRef.deref()
+            if (sRef) {
+                return sRef
+            } else {
+                // object has been collected. need to wref with new object
+                this.keyToSynchronizer.delete(key)
+            }
         }
-        s = this.createSynchronizer({
+        const sRef = this.createSynchronizer({
             synchronizerId: `id:${this.nextId()} key:${key}`,
             maxConcurrentExecution,
         })
-        this.keyToSynchronizer.set(key, s)
-        return s
+        this.keyToSynchronizer.set(key, new WeakRef(sRef))
+        return sRef
     }
 
     forObject(obj: object, maxConcurrentExecution?: number) {

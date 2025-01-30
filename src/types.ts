@@ -5,9 +5,9 @@ export type SynchronizerStats = {
 }
 
 export type SynchronizerContext = {
-    providerId?: string,
-    synchronizerId?: string,
-    executionId?: string,
+    providerId: string,
+    synchronizerId: string,
+    executionId: string,
 }
 
 export type SynchronizerCallback<T> = (context: SynchronizerContext) => Promise<T>
@@ -31,7 +31,8 @@ export type SynchronizerEvent = {
 
 export type SynchronizerEventListener = (event: SynchronizerEvent) => void
 
-export type SynchronizerProviderParams = Pick<SynchronizerContext, "providerId"> & {
+export type SynchronizerProviderParams = {
+    readonly providerId?: string,
     readonly onEvent?: SynchronizerEventListener,
 }
 

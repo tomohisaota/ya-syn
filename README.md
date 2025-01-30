@@ -19,13 +19,13 @@ stateDiagram-v2
     Acquire --> Acquired
     state Synchronized {
         Acquired --> Release
+        state Reenter {
+            direction LR
+            Enter --> Exit
+        }
     }
     Release --> Finish
     [*] --> Enter
-    state Reenter {
-        direction LR
-        Enter --> Exit
-    }
     Exit --> Finish
     Finish --> [*]
 ```
@@ -97,6 +97,9 @@ npm install ya-syn
 
 # Version History
 
+- 1.1.2
+    - Use weak ref for string key based synchronizer provider
+    - Set default provider/synchronizer/execution id to uuid
 - 1.1.1
     - Fix bug in handling reenter with throttling
 - 1.1.0
@@ -109,7 +112,6 @@ npm install ya-syn
 
 # Next Step
 
-- Add good way to free unused string keyed synchronizer
 - Support reentrant synchronization on web browser
 
 # License
