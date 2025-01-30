@@ -1,14 +1,11 @@
-import {SynchronizerProvider} from "../src";
-import {sleep} from "./utils";
-import {CachedProvider} from "../src/CachedProvider";
+import {createSynchronizerProvider, sleep} from "./utils";
+import {CachedProvider} from "../src";
 
 
 describe("CachedProvider", () => {
-    const sp = new SynchronizerProvider({
-        providerId: "CachedProvider",
-    })
 
-    test.concurrent('with timeout', async () => {
+    test('with timeout', async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
         let count = 0
         const cache = sp.createCachedProvider({
             factory: async () => count++
@@ -19,9 +16,11 @@ describe("CachedProvider", () => {
         await sleep(100) // wait until cache expires
         expect(await cache.get(100)).toBe(1)
         expect(count).toBe(2)
+        checker.dump().clear()
     });
 
-    test.concurrent('without timeout', async () => {
+    test('without timeout', async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
         let count = 0
         const cache = sp.createCachedProvider({
             factory: async () => {
@@ -43,9 +42,11 @@ describe("CachedProvider", () => {
             cache.get(),
             cache.get(),
         ])).toEqual([1, 1, 1, 1, 1])
+        checker.dump().clear()
     });
 
     test.concurrent('override default ttl', async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
         let count = 0
         const cache = sp.createCachedProvider({
             factory: async () => {
@@ -77,9 +78,11 @@ describe("CachedProvider", () => {
             cache.get(),
             cache.get(),
         ])).toEqual([1, 1, 1, 1, 1])
+        checker.dump().clear()
     });
 
     test.concurrent('with capture', async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
         let count = 0
         const cache = CachedProvider.capture({
             variable1: new Set<number>()
@@ -98,5 +101,22 @@ describe("CachedProvider", () => {
         await sleep(100) // wait until cache expires
         expect(await cache.get(100)).toBe(1)
         expect(count).toBe(2)
+        await checker.dumpLater()
+    });
+
+    test.concurrent.only('with capture', async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+        let count = 0
+        const cache = CachedProvider.capture({
+            variable1: new Set<number>()
+        }, ({variable1}) => sp
+            .createCachedProvider({
+                factory: async () => {
+                    variable1.add(count++)
+                    return new Map<string, string>()
+                }
+            }))
+        console.log(await cache.get())
+        await checker.dumpLater()
     });
 })

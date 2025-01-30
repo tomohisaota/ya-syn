@@ -1,47 +1,26 @@
-import {SynchronizerEvent, SynchronizerProvider} from "../../src";
-import {sleep} from "../utils";
+import {createSynchronizerProvider} from "../utils";
 
 const prefix = "Lock By Instance"
 describe(prefix, () => {
-    let events: SynchronizerEvent[] = []
-
-    const sp = new SynchronizerProvider({
-        providerId: `${prefix}-SynchronizerProvider`,
-        onEvent: (event) => events.push(event)
-    })
-
-    afterEach(async () => {
-        // wait until it received all events
-        await sleep(500)
-        console.table(events.flatMap(i => ({
-            // providerId: i.context.providerId,
-            synchronizerId: i.context.synchronizerId,
-            // executionId: i.context.executionId,
-            type: i.type,
-            maxConcurrentExecution: i.stats.maxConcurrentExecution,
-            numberOfTasks: i.stats.numberOfTasks,
-            numberOfRunningTasks: i.stats.numberOfRunningTasks,
-        })))
-        events = []
-    })
-
-    class Sample {
-        count = 0
-
-        async increment() {
-            const count = this.count
-            await new Promise(resolve => setTimeout(resolve, 10))
-            this.count = count + 1
-        }
-
-        async incrementWithLock() {
-            await sp.forObject(this).synchronized(async () => {
-                await this.increment()
-            })
-        }
-    }
 
     test("without lock", async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+
+        class Sample {
+            count = 0
+
+            async increment() {
+                const count = this.count
+                await new Promise(resolve => setTimeout(resolve, 10))
+                this.count = count + 1
+            }
+
+            async incrementWithLock() {
+                await sp.forObject(this).synchronized(async () => {
+                    await this.increment()
+                })
+            }
+        }
 
         const t = new Sample()
         const tasks: Promise<void>[] = []
@@ -50,9 +29,27 @@ describe(prefix, () => {
         }
         await Promise.all(tasks)
         expect(t.count).toBe(1)
+        await checker.dumpLater()
     })
 
     test("with synchronized method", async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+
+        class Sample {
+            count = 0
+
+            async increment() {
+                const count = this.count
+                await new Promise(resolve => setTimeout(resolve, 10))
+                this.count = count + 1
+            }
+
+            async incrementWithLock() {
+                await sp.forObject(this).synchronized(async () => {
+                    await this.increment()
+                })
+            }
+        }
 
         const t = new Sample()
         const tasks: Promise<void>[] = []
@@ -61,9 +58,28 @@ describe(prefix, () => {
         }
         await Promise.all(tasks)
         expect(t.count).toBe(10)
+        await checker.dumpLater()
     })
 
     test("with external synchronizer", async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+
+        class Sample {
+            count = 0
+
+            async increment() {
+                const count = this.count
+                await new Promise(resolve => setTimeout(resolve, 10))
+                this.count = count + 1
+            }
+
+            async incrementWithLock() {
+                await sp.forObject(this).synchronized(async () => {
+                    await this.increment()
+                })
+            }
+        }
+
         const t = new Sample()
         const tasks: Promise<void>[] = []
         for (let i = 0; i < 10; i++) {
@@ -73,9 +89,28 @@ describe(prefix, () => {
         }
         await Promise.all(tasks)
         expect(t.count).toBe(10)
+        await checker.dumpLater()
     })
 
     test.concurrent("with synchronized method and external synchronizer", async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+
+        class Sample {
+            count = 0
+
+            async increment() {
+                const count = this.count
+                await new Promise(resolve => setTimeout(resolve, 10))
+                this.count = count + 1
+            }
+
+            async incrementWithLock() {
+                await sp.forObject(this).synchronized(async () => {
+                    await this.increment()
+                })
+            }
+        }
+
         const t = new Sample()
         const tasks: Promise<void>[] = []
         for (let i = 0; i < 10; i++) {
@@ -88,6 +123,7 @@ describe(prefix, () => {
         }
         await Promise.all(tasks)
         expect(t.count).toBe(30)
+        await checker.dumpLater()
     })
 
 })

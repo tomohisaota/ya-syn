@@ -1,30 +1,8 @@
-import {sleep} from "../utils";
-import {SynchronizerEvent, SynchronizerProvider} from "../../src";
+import {createSynchronizerProvider} from "../utils";
 
 const prefix = "Lock By Key"
 describe(prefix, () => {
-    let events: SynchronizerEvent[] = []
-
-    const sp = new SynchronizerProvider({
-        providerId: `${prefix}-SynchronizerProvider`,
-        onEvent: (event) => events.push(event)
-    })
-
-    afterEach(async () => {
-        // wait until it received all events
-        await sleep(500)
-        console.table(events.flatMap(i => ({
-            // providerId: i.context.providerId,
-            // synchronizerId: i.context.synchronizerId,
-            executionId: i.context.executionId,
-            type: i.type,
-            maxConcurrentExecution: i.stats.maxConcurrentExecution,
-            numberOfTasks: i.stats.numberOfTasks,
-            numberOfRunningTasks: i.stats.numberOfRunningTasks,
-        })))
-        events = []
-    })
-
+    const {checker, sp} = createSynchronizerProvider(__filename)
 
     test("Lock By Class", async () => {
         const urls = [
@@ -39,22 +17,15 @@ describe(prefix, () => {
             "https://example3.com/3",
         ]
 
-        const accessed: {
-            url: string,
-            elapsed: number
-        }[] = []
-        const start = new Date().getTime()
-
         async function access(url: string) {
             const u = new URL(url)
             return sp.forKey(u.host, 1).synchronized({
                 executionId: url,
                 cb: async () => {
                     return sp.forKey("request", 3).synchronized({
-                        executionId: "request",
+                        executionId: url,
                         cb: async () => {
                             await new Promise(resolve => setTimeout(resolve, 50))
-                            accessed.push({url, elapsed: new Date().getTime() - start})
                         }
                     })
                 }
@@ -62,6 +33,8 @@ describe(prefix, () => {
         }
 
         await Promise.all(urls.map(url => access(url)))
+        await checker.dumpLater()
+        checker.clear()
     })
 
 })

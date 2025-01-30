@@ -1,29 +1,9 @@
-import {sleep} from "../utils";
-import {SynchronizerEvent, SynchronizerProvider} from "../../src";
+import {createSynchronizerProvider} from "../utils";
 
 const prefix = "Lock By Class"
 describe(prefix, () => {
-    let events: SynchronizerEvent[] = []
 
-    const sp = new SynchronizerProvider({
-        providerId: `${prefix}-SynchronizerProvider`,
-        onEvent: (event) => events.push(event)
-    })
-
-    afterEach(async () => {
-        // wait until it received all events
-        await sleep(500)
-        console.table(events.flatMap(i => ({
-            // providerId: i.context.providerId,
-            synchronizerId: i.context.synchronizerId,
-            // executionId: i.context.executionId,
-            type: i.type,
-            maxConcurrentExecution: i.stats.maxConcurrentExecution,
-            numberOfTasks: i.stats.numberOfTasks,
-            numberOfRunningTasks: i.stats.numberOfRunningTasks,
-        })))
-        events = []
-    })
+    const {checker, sp} = createSynchronizerProvider(__filename)
 
     class Sample {
         count = 0
@@ -45,6 +25,7 @@ describe(prefix, () => {
         }
         await Promise.all(tasks)
         expect(t.count).toBe(100)
+        await checker.dumpLater()
     })
 
 })

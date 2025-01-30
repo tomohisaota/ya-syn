@@ -3,6 +3,7 @@ import {SynchronizerProvider} from "../../src";
 /*
 Synchronizer provider for samples
  */
+
 export const gsp = new SynchronizerProvider({
     providerId: "MyGlobalSynchronizerProvider",
     onEvent: (event) => console.log(event)

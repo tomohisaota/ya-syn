@@ -1,29 +1,9 @@
-import {sleep} from "../utils";
-import {SynchronizerEvent, SynchronizerProvider} from "../../src";
+import {createSynchronizerProvider, sleep} from "../utils";
 
 const prefix = "Semaphore"
 describe(prefix, () => {
-    let events: SynchronizerEvent[] = []
+    const {checker, sp} = createSynchronizerProvider(__filename)
 
-    const sp = new SynchronizerProvider({
-        providerId: `${prefix}-SynchronizerProvider`,
-        onEvent: (event) => events.push(event)
-    })
-
-    afterEach(async () => {
-        // wait until it received all events
-        await sleep(500)
-        console.table(events.flatMap(i => ({
-            providerId: i.context.providerId,
-            synchronizerId: i.context.synchronizerId,
-            executionId: i.context.executionId,
-            type: i.type,
-            maxConcurrentExecution: i.stats.maxConcurrentExecution,
-            numberOfTasks: i.stats.numberOfTasks,
-            numberOfRunningTasks: i.stats.numberOfRunningTasks,
-        })))
-        events = []
-    })
 
     test("withId", async () => {
         const s = sp.createSynchronizer({
@@ -46,6 +26,7 @@ describe(prefix, () => {
                 })
             }),
         ])
+        await checker.dumpLater()
     })
 
     test("withoutId", async () => {
@@ -64,6 +45,7 @@ describe(prefix, () => {
                 )
             ),
         ])
+        await checker.dumpLater()
     })
 })
 

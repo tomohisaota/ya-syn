@@ -35,6 +35,7 @@ export class Synchronizer {
 
     protected readonly _semaphore
     protected readonly _stats: SynchronizerStats
+    protected readonly _synchronizerId: string
 
     constructor(readonly params: SynchronizerParams
     ) {
@@ -45,6 +46,7 @@ export class Synchronizer {
             numberOfRunningTasks: 0,
             numberOfTasks: 0,
         }
+        this._synchronizerId = params.synchronizerId ?? crypto.randomUUID()
     }
 
     get providerId() {
@@ -52,7 +54,7 @@ export class Synchronizer {
     }
 
     get synchronizerId() {
-        return this.params.synchronizerId
+        return this._synchronizerId
     }
 
     get stats(): Readonly<SynchronizerStats> {
@@ -101,8 +103,6 @@ export class Synchronizer {
                 break
             case "Release":
                 this._stats.numberOfRunningTasks--
-                break
-            case "Finish":
                 this._stats.numberOfTasks--
                 break
             case "Timeout":
@@ -164,7 +164,8 @@ class WithTimeout {
 
     synchronized<T>(params: SynchronizerSynchronizedParams<T>): Promise<T> {
         const {synchronizer, timeout} = this._params
-        const {cb, executionId} = toFullParam(params)
+        params = toFullParam(params)
+        const {cb, executionId} = params
         let state: "waiting" | "timeout" | "started" = "waiting"
         return Promise.race([
             synchronizer.synchronized({
@@ -198,12 +199,17 @@ class WithTimeout {
 }
 
 function toFullParam<T>(params: SynchronizerSynchronizedParams<T>): SynchronizerSynchronizedParamsFull<T> {
+    const executionId = crypto.randomUUID()
     if (!("cb" in params)) {
         return ({
+            executionId,
             cb: params
         })
     }
-    return params
+    return {
+        executionId,
+        ...params
+    }
 }
 
 function toContext(s: Synchronizer, executionId?: string): SynchronizerContext {

@@ -1,55 +1,38 @@
-import {sleep} from "./utils";
-import {SynchronizerEvent, SynchronizerProvider} from "../src";
+import {createSynchronizerProvider, sleep} from "./utils";
 
 const prefix = "errors"
 describe(prefix, () => {
-    let events: SynchronizerEvent[] = []
 
-    const sp = new SynchronizerProvider({
-        providerId: `${prefix}-SynchronizerProvider`,
-        onEvent: (event) => events.push(event)
-    })
-
-    afterEach(async () => {
-        // wait until it received all events
-        await sleep(500)
-        console.table(events.flatMap(i => ({
-            // providerId: i.context.providerId,
-            synchronizerId: i.context.synchronizerId,
-            executionId: i.context.executionId,
-            type: i.type,
-            maxConcurrentExecution: i.stats.maxConcurrentExecution,
-            numberOfTasks: i.stats.numberOfTasks,
-            numberOfRunningTasks: i.stats.numberOfRunningTasks,
-        })))
-        events = []
-    })
-
+    const {checker, sp} = createSynchronizerProvider(__filename)
 
     test("throttle", async () => {
         const s = sp.createSynchronizer().throttle()
+        let i = 0
         await Promise.allSettled([
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
         ])
         await sleep(100)
         expect(s.stats.numberOfTasks).toBe(0)
         expect(s.stats.numberOfRunningTasks).toBe(0)
+        await checker.dumpLater()
     })
 
     test("timeout", async () => {
         const s = sp.createSynchronizer().timeout(100)
+        let i = 0
         await Promise.allSettled([
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
-            s.synchronized(async () => await sleep(1000)),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
+            s.synchronized({cb: async () => await sleep(1000), executionId: `executionId${i++}`}),
         ])
         await sleep(100)
         expect(s.stats.numberOfTasks).toBe(0)
         expect(s.stats.numberOfRunningTasks).toBe(0)
+        await checker.dumpLater()
     })
 })
 
