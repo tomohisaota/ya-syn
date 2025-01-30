@@ -39,31 +39,64 @@ describe(prefix, () => {
 
 /*
 
-> ya-syn@1.0.0 test
-> jest --verbose test/samples/cache-provider.test.ts
+> ya-syn@1.1.1 test
+> jest --verbose test/errors.test.ts
 
   console.log
-    ┌─────────┬───────────────────────────┬────────────────────────────────────────────────────────────┬────────────┬────────────────────────┬───────────────┬──────────────────────┐
-    │ (index) │ synchronizerId            │ executionId                                                │ type       │ maxConcurrentExecution │ numberOfTasks │ numberOfRunningTasks │
-    ├─────────┼───────────────────────────┼────────────────────────────────────────────────────────────┼────────────┼────────────────────────┼───────────────┼──────────────────────┤
-    │ 0       │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026371380 cachedAt:undefined'     │ 'Acquire'  │ 1                      │ 1             │ 0                    │
-    │ 1       │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026371381 cachedAt:undefined'     │ 'Acquire'  │ 1                      │ 2             │ 0                    │
-    │ 2       │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026371380 cachedAt:undefined'     │ 'Acquired' │ 1                      │ 2             │ 1                    │
-    │ 3       │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026371380 cachedAt:undefined'     │ 'Release'  │ 1                      │ 2             │ 0                    │
-    │ 4       │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026371380 cachedAt:undefined'     │ 'Finish'   │ 1                      │ 1             │ 0                    │
-    │ 5       │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026371381 cachedAt:undefined'     │ 'Acquired' │ 1                      │ 1             │ 1                    │
-    │ 6       │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026371381 cachedAt:undefined'     │ 'Release'  │ 1                      │ 1             │ 0                    │
-    │ 7       │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026371381 cachedAt:undefined'     │ 'Finish'   │ 1                      │ 0             │ 0                    │
-    │ 8       │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Acquire'  │ 1                      │ 1             │ 0                    │
-    │ 9       │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Acquire'  │ 1                      │ 2             │ 0                    │
-    │ 10      │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Acquired' │ 1                      │ 2             │ 1                    │
-    │ 11      │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Release'  │ 1                      │ 2             │ 0                    │
-    │ 12      │ 'id:0 obj:CachedProvider' │ 'ttl:500 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Finish'   │ 1                      │ 1             │ 0                    │
-    │ 13      │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Acquired' │ 1                      │ 1             │ 1                    │
-    │ 14      │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Release'  │ 1                      │ 1             │ 0                    │
-    │ 15      │ 'id:0 obj:CachedProvider' │ 'ttl:100 requestedAt:1738026372188 cachedAt:1738026371381' │ 'Finish'   │ 1                      │ 0             │ 0                    │
-    └─────────┴───────────────────────────┴────────────────────────────────────────────────────────────┴────────────┴────────────────────────┴───────────────┴──────────────────────┘
+    ┌─────────┬──────────────────┬────────────────────────────────────────┬────────────────┬────────────┬────────────────────────┬───────────────┬──────────────────────┐
+    │ (index) │ providerId       │ synchronizerId                         │ executionId    │ type       │ maxConcurrentExecution │ numberOfTasks │ numberOfRunningTasks │
+    ├─────────┼──────────────────┼────────────────────────────────────────┼────────────────┼────────────┼────────────────────────┼───────────────┼──────────────────────┤
+    │ 0       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId0' │ 'Acquire'  │ 1                      │ 1             │ 0                    │
+    │ 1       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId0' │ 'Acquired' │ 1                      │ 1             │ 1                    │
+    │ 2       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId1' │ 'Throttle' │ 1                      │ 1             │ 1                    │
+    │ 3       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId2' │ 'Throttle' │ 1                      │ 1             │ 1                    │
+    │ 4       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId3' │ 'Throttle' │ 1                      │ 1             │ 1                    │
+    │ 5       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId0' │ 'Release'  │ 1                      │ 0             │ 0                    │
+    │ 6       │ 'errors.test.ts' │ 'c7ad6254-6931-4efe-b838-84c5282aa308' │ 'executionId0' │ 'Finish'   │ 1                      │ 0             │ 0                    │
+    └─────────┴──────────────────┴────────────────────────────────────────┴────────────────┴────────────┴────────────────────────┴───────────────┴──────────────────────┘
 
-      at Object.<anonymous> (test/samples/cache-provider.test.ts:16:17)
+      at StateTransitionChecker.dump (test/StateTransitionChecker.ts:43:17)
+
+  console.log
+    ┌──────────────────────────────────────────────────────────────────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐
+    │ (index)                                                          │ 0    │ 1    │ 2    │ 3    │ 4    │ 5    │ 6    │
+    ├──────────────────────────────────────────────────────────────────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┤
+    │ errors.test.ts/c7ad6254-6931-4efe-b838-84c5282aa308/executionId0 │ 'AC' │ 'AD' │      │      │      │ 'RE' │ 'FI' │
+    │ errors.test.ts/c7ad6254-6931-4efe-b838-84c5282aa308/executionId1 │      │      │ 'TH' │      │      │      │      │
+    │ errors.test.ts/c7ad6254-6931-4efe-b838-84c5282aa308/executionId2 │      │      │      │ 'TH' │      │      │      │
+    │ errors.test.ts/c7ad6254-6931-4efe-b838-84c5282aa308/executionId3 │      │      │      │      │ 'TH' │      │      │
+    └──────────────────────────────────────────────────────────────────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘
+
+      at StateTransitionChecker.dump (test/StateTransitionChecker.ts:52:17)
+
+  console.log
+    ┌─────────┬──────────────────┬────────────────────────────────────────┬────────────────┬────────────┬────────────────────────┬───────────────┬──────────────────────┐
+    │ (index) │ providerId       │ synchronizerId                         │ executionId    │ type       │ maxConcurrentExecution │ numberOfTasks │ numberOfRunningTasks │
+    ├─────────┼──────────────────┼────────────────────────────────────────┼────────────────┼────────────┼────────────────────────┼───────────────┼──────────────────────┤
+    │ 0       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId0' │ 'Acquire'  │ 1                      │ 1             │ 0                    │
+    │ 1       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId0' │ 'Acquired' │ 1                      │ 1             │ 1                    │
+    │ 2       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId1' │ 'Acquire'  │ 1                      │ 2             │ 1                    │
+    │ 3       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId2' │ 'Acquire'  │ 1                      │ 3             │ 1                    │
+    │ 4       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId3' │ 'Acquire'  │ 1                      │ 4             │ 1                    │
+    │ 5       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId1' │ 'Timeout'  │ 1                      │ 3             │ 1                    │
+    │ 6       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId2' │ 'Timeout'  │ 1                      │ 2             │ 1                    │
+    │ 7       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId3' │ 'Timeout'  │ 1                      │ 1             │ 1                    │
+    │ 8       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId0' │ 'Release'  │ 1                      │ 0             │ 0                    │
+    │ 9       │ 'errors.test.ts' │ 'c49192db-cc65-4297-abf9-c636a95d80cf' │ 'executionId0' │ 'Finish'   │ 1                      │ 0             │ 0                    │
+    └─────────┴──────────────────┴────────────────────────────────────────┴────────────────┴────────────┴────────────────────────┴───────────────┴──────────────────────┘
+
+      at StateTransitionChecker.dump (test/StateTransitionChecker.ts:43:17)
+
+  console.log
+    ┌──────────────────────────────────────────────────────────────────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐
+    │ (index)                                                          │ 0    │ 1    │ 2    │ 3    │ 4    │ 5    │ 6    │ 7    │ 8    │ 9    │
+    ├──────────────────────────────────────────────────────────────────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┼──────┤
+    │ errors.test.ts/c49192db-cc65-4297-abf9-c636a95d80cf/executionId0 │ 'AC' │ 'AD' │      │      │      │      │      │      │ 'RE' │ 'FI' │
+    │ errors.test.ts/c49192db-cc65-4297-abf9-c636a95d80cf/executionId1 │      │      │ 'AC' │      │      │ 'TI' │      │      │      │      │
+    │ errors.test.ts/c49192db-cc65-4297-abf9-c636a95d80cf/executionId2 │      │      │      │ 'AC' │      │      │ 'TI' │      │      │      │
+    │ errors.test.ts/c49192db-cc65-4297-abf9-c636a95d80cf/executionId3 │      │      │      │      │ 'AC' │      │      │ 'TI' │      │      │
+    └──────────────────────────────────────────────────────────────────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘
+
+      at StateTransitionChecker.dump (test/StateTransitionChecker.ts:52:17)
 
  */
