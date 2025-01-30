@@ -100,7 +100,8 @@
     /* Check for class properties that are declared but not set in the constructor. */
     "strictBuiltinIteratorReturn": true,
     /* Built-in iterators are instantiated with a 'TReturn' type of 'undefined' instead of 'any'. */
-     "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
+    "noImplicitThis": true,
+    /* Enable error reporting when 'this' is given the type 'any'. */
     // "useUnknownInCatchVariables": true,               /* Default catch clause variables as 'unknown' instead of 'any'. */
     // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
     // "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
@@ -116,7 +117,11 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true
+    "skipLibCheck": true,
     /* Skip type checking all .d.ts files. */
+    "lib": [
+      "es2018",
+      "es2021.weakref"
+    ]
   }
 }

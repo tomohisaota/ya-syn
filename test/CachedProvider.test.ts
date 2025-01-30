@@ -104,7 +104,7 @@ describe("CachedProvider", () => {
         await checker.dumpLater()
     });
 
-    test.concurrent.only('with capture', async () => {
+    test.concurrent('with capture', async () => {
         const {checker, sp} = createSynchronizerProvider(__filename)
         let count = 0
         const cache = CachedProvider.capture({
