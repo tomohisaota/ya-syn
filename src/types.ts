@@ -42,3 +42,23 @@ export type  CachedProviderParams<T> = {
     readonly cacheTimestamp?: (obj: T) => Date
     readonly defaultTTL?: number
 }
+
+export type SynchronizerParams = SynchronizerProviderParams
+    & Partial<Pick<SynchronizerStats, "maxConcurrentExecution">> & {
+    readonly synchronizerId?: string,
+    readonly raiseOnReentrant?: boolean
+}
+
+export type SynchronizerTask<T> = {
+    executionId?: string,
+    task: T
+}
+
+export type SynchronizerTaskExecutorParams<T> = {
+    readonly maxTasksInFlight: number
+    readonly maxTasksInExecution?: number
+    readonly taskSource: AsyncGenerator<SynchronizerTask<T>>
+    readonly taskExecutor: (params: SynchronizerTask<T>) => Promise<void>
+    readonly onTaskError?: (e: unknown) => void
+    readonly executorId?: string,
+}

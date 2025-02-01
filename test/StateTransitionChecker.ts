@@ -41,7 +41,7 @@ export class StateTransitionChecker {
 
     dump(clear = true) {
         console.table(this.events.flatMap(i => ({
-            providerId: i.context.providerId,
+            // providerId: i.context.providerId,
             synchronizerId: i.context.synchronizerId,
             executionId: i.context.executionId,
             type: i.type,
