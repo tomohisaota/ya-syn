@@ -76,6 +76,10 @@ npm install ya-syn
 - You can specify default TTL
 - You can override ttl when you get cache
 
+### Use case: [TaskExecutor](test/samples/execute-tasks.test.ts)
+
+- Execute task in parallel using asynchronous generator pattern
+
 # Other useful components
 
 ## [LazyInitializer](src/LazyInitializer.ts)
@@ -97,6 +101,8 @@ npm install ya-syn
 
 # Version History
 
+- 1.2.0
+    - Added Task Executor
 - 1.1.2
     - Use weak ref for string key based synchronizer provider
     - Set default provider/synchronizer/execution id to uuid

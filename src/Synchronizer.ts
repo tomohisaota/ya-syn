@@ -2,7 +2,7 @@ import {
     SynchronizerCallback,
     SynchronizerContext,
     SynchronizerEventType,
-    SynchronizerProviderParams,
+    SynchronizerParams,
     SynchronizerStats
 } from "./types";
 import {
@@ -20,12 +20,6 @@ It is possible to enter synchronized block recursively.
 
 
  */
-
-type SynchronizerParams = SynchronizerProviderParams
-    & Partial<Pick<SynchronizerStats, "maxConcurrentExecution">> & {
-    readonly synchronizerId?: string,
-    readonly raiseOnReentrant?: boolean
-}
 
 type SynchronizerSynchronizedParamsFull<T> = {
     executionId?: string
@@ -212,6 +206,9 @@ function toFullParam<T>(params: SynchronizerSynchronizedParams<T>): Synchronizer
             executionId,
             cb: params
         })
+    }
+    if (params.executionId === undefined) {
+        delete params.executionId
     }
     return {
         executionId,

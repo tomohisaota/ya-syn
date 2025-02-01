@@ -1,13 +1,21 @@
 import {WeakCacheProvider} from "./WeakCacheProvider";
 import {Synchronizer} from "./Synchronizer";
-import {CachedProviderParams, SynchronizerProviderParams} from "./types";
+import {
+    CachedProviderParams,
+    SynchronizerEventListener,
+    SynchronizerParams,
+    SynchronizerProviderParams,
+    SynchronizerTaskExecutorParams
+} from "./types";
 import {CachedProvider} from "./CachedProvider";
+import {TaskExecutor} from "./TaskExecutor";
 
 
 export class SynchronizerProvider {
     protected id = 0
     protected weakCacheProvider = new WeakCacheProvider<Synchronizer>()
     protected keyToSynchronizer = new Map<string, WeakRef<Synchronizer>>()
+    protected taskExecutor = new TaskExecutor(this)
 
     constructor(readonly params?: SynchronizerProviderParams) {
     }
@@ -52,13 +60,25 @@ export class SynchronizerProvider {
         })
     }
 
-    createSynchronizer(params?: {
-        synchronizerId?: string
-        maxConcurrentExecution?: number,
-    }): Synchronizer {
+    createSynchronizer(params?: Omit<SynchronizerParams, "providerId">): Synchronizer {
         return new Synchronizer({
             ...this.params,
             ...params,
+            onEvent: mergeEventListeners([this.params?.onEvent, params?.onEvent])
         })
+    }
+
+    async executeTasks<T>(params: SynchronizerTaskExecutorParams<T>) {
+        return this.taskExecutor.executeTasks(params)
+    }
+}
+
+function mergeEventListeners(listeners: (SynchronizerEventListener | undefined)[]): SynchronizerEventListener | undefined {
+    const validListeners = listeners.filter((i): i is SynchronizerEventListener => i !== undefined)
+    if (validListeners.length === 0) {
+        return undefined
+    }
+    return (event) => {
+        validListeners.map(l => l(event))
     }
 }
