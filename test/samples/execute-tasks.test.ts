@@ -1,4 +1,5 @@
 import {createSynchronizerProvider} from "../utils";
+import {mergeAsyncGenerators} from "../../src";
 
 describe("batch-execute", () => {
 
@@ -20,6 +21,34 @@ describe("batch-execute", () => {
                     }
                 }
             }(),
+            taskExecutor: async ({executionId}) => {
+                await new Promise(r => setTimeout(r, 50))
+                console.log(`${executionId}:executed`)
+            }
+        })
+        await checker.dumpLater()
+    })
+
+    test.concurrent("regular case with mergeAsyncGenerators", async () => {
+        const {checker, sp} = createSynchronizerProvider(__filename)
+        await sp.executeTasks({
+            executorId: "",
+            maxTasksInFlight: 3,
+            maxTasksInExecution: 2,
+            taskSource: mergeAsyncGenerators([
+                async function* () {
+                    for (let batch = 0; batch < 2; batch++) {
+                        for (let loop = 0; loop < 3; loop++) {
+                            const executionId = `${batch}:${loop}`
+                            console.log(`${executionId}:queue`)
+                            yield {
+                                executionId,
+                                task: {batch, loop}
+                            }
+                        }
+                    }
+                }(),
+            ]),
             taskExecutor: async ({executionId}) => {
                 await new Promise(r => setTimeout(r, 50))
                 console.log(`${executionId}:executed`)
