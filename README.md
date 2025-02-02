@@ -80,6 +80,11 @@ npm install ya-syn
 
 - Execute task in parallel using asynchronous generator pattern
 
+### Use case: [mergeGenerators](src/utils/mergeGenerators.ts)
+
+- utility function to merge multiple asynchronous generator into one
+- TaskExecutor can process multiple async generators using mergeGenerators
+
 # Other useful components
 
 ## [LazyInitializer](src/LazyInitializer.ts)
