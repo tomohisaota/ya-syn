@@ -55,6 +55,7 @@ export class TaskExecutor {
     } & SynchronizerTaskExecutorParams<T>): Promise<void> {
         const {maxTasksInFlight, inFlightSemaphore, inExecutionSemaphore, taskSource} = params
         const intervalCalculator = new IntervalCalculator()
+        const tasks: Promise<void>[] = []
         return new Promise<void>((resolve, reject) => {
                 // create async function to use await
                 // promise from this async function is useless.
@@ -78,7 +79,7 @@ export class TaskExecutor {
                                 }
                                 const {executionId, task} = t.value
                                 const startAt = new Date()
-                                this.executeTaskInSemaphore({
+                                tasks.push(this.executeTaskInSemaphore({
                                     ...params,
                                     executionId: executionId ?? crypto.randomUUID(),
                                     inFlightSemaphore,
@@ -86,7 +87,7 @@ export class TaskExecutor {
                                     task,
                                 }).finally(() => {
                                     intervalCalculator.update(new Date().getTime() - startAt.getTime())
-                                })
+                                }))
                             }
                             await new Promise(r => setTimeout(r, 0))
                         }
@@ -97,7 +98,10 @@ export class TaskExecutor {
                     // nothing to do
                 });
             }
-        )
+        ).finally(() => {
+            // Wait until all tasks completes
+            return Promise.allSettled(tasks).then(() => Promise.resolve())
+        })
     }
 
     executeTaskInSemaphore<T>(params: {
