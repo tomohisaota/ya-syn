@@ -7,8 +7,15 @@ export class CoreLazyInitializer<T> {
 
     constructor(
         protected readonly _factory: () => Promise<T>,
-        protected _synchronizer = new CoreSemaphore(1)
+        protected _synchronizer = new CoreSemaphore(1),
+        protected eager?: boolean
     ) {
+        if (eager === true) {
+            // Try eager loading. don't are about result nor error
+            this.get().catch(e => {
+                // ignore error
+            })
+        }
     }
 
     async get(): Promise<T> {
