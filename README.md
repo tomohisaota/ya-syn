@@ -106,6 +106,11 @@ npm install ya-syn
 
 # Version History
 
+- 1.3.1
+    - Add eager option to LazyInitializer
+    - Fix bug that executor doesn't wait until all tasks completes
+- 1.3.0
+    - Add mergeAsyncGenerators to enhance task executor
 - 1.2.0
     - Added Task Executor
 - 1.1.2
