@@ -31,7 +31,7 @@ export class StateTransitionChecker {
     }
 
     async dumpLater(clear = true) {
-        return new Promise<void>(resolve => {
+        return new Promise<void>((resolve): void => {
             setTimeout(() => {
                 this.dump(clear)
                 resolve()

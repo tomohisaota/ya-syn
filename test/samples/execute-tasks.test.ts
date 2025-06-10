@@ -22,7 +22,9 @@ describe("batch-execute", () => {
                 }
             }(),
             taskExecutor: async ({executionId}) => {
-                await new Promise(r => setTimeout(r, 50))
+                await new Promise((r):void => {
+                    setTimeout(r, 50)
+                })
                 console.log(`${executionId}:executed`)
             }
         })
@@ -50,7 +52,9 @@ describe("batch-execute", () => {
                 }(),
             ]),
             taskExecutor: async ({executionId}) => {
-                await new Promise(r => setTimeout(r, 50))
+                await new Promise((r):void => {
+                    setTimeout(r, 50)
+                })
                 console.log(`${executionId}:executed`)
             }
         })

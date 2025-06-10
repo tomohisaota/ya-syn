@@ -7,7 +7,7 @@ type ReentrantDetectorFactoryLazyFactory = () => Promise<ReentrantDetectorFactor
 
 
 const usingAsyncLocalStorage: ReentrantDetectorFactoryLazyFactory = () => {
-    return new Promise<ReentrantDetectorFactory>((resolve, reject) => {
+    return new Promise<ReentrantDetectorFactory>((resolve, reject): void => {
         import("async_hooks").then(module => {
             class ReentrantMarker {
                 protected readonly storage = new module.AsyncLocalStorage<boolean>()

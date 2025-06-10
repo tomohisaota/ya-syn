@@ -25,7 +25,9 @@ describe(prefix, () => {
                     return sp.forKey("request", 3).synchronized({
                         executionId: url,
                         cb: async () => {
-                            await new Promise(resolve => setTimeout(resolve, 50))
+                            await new Promise((resolve): void => {
+                                setTimeout(resolve, 50)
+                            })
                         }
                     })
                 }
