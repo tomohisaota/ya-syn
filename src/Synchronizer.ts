@@ -65,7 +65,7 @@ export class Synchronizer {
             synchronizerId: this.synchronizerId,
             executionId,
         }
-        return new Promise<T>((resolve, reject) => {
+        return new Promise<T>((resolve, reject): void => {
             this._semaphore.synchronized((): Promise<void> => {
                 return cb(context).then(resolve).catch(reject)
             }, {
@@ -173,15 +173,15 @@ class WithTimeout {
                 executionId,
                 isCanceled: () => state === "timeout",
                 cb: (context) => {
-                    return new Promise<T>((resolve, reject) => {
+                    return new Promise<T>((resolve, reject): void => {
                         if (state === "waiting") {
                             state = "started"
-                            return cb(context).then(resolve).catch(reject)
+                            cb(context).then(resolve).catch(reject)
                         }
                     })
                 }
             }),
-            new Promise<T>((_resolve, reject) => {
+            new Promise<T>((_resolve, reject): void => {
                 // If it cannot acquire lock within timeout
                 setTimeout(() => {
                     if (state === "waiting") {

@@ -5,7 +5,9 @@ describe("Async Class Variable", () => {
     class Sample {
         // lazy class variable can be created when the class is loaded
         static readonly i = new LazyInitializer(async () => {
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise((resolve): void => {
+                setTimeout(resolve, 1000)
+            })
             return {}
         })
 

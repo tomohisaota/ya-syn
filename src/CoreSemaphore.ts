@@ -20,7 +20,7 @@ export class CoreSemaphore {
     }
 
     synchronized(cb: () => Promise<void>): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject): void => {
             const task = () => {
                 return cb().then(resolve).catch(reject)
             }
@@ -31,21 +31,17 @@ export class CoreSemaphore {
                 // wait in the queue
                 this._pendingTaskQueue.push(task)
             }
-            return task
         })
 
     }
 
-    protected run(cb: () => Promise<void>) {
+    protected run(cb: () => Promise<void>): void {
         this._running++
         cb().finally(() => {
             this._running--
-            if (this._pendingTaskQueue.length > 0) {
-                // finally, it's my time!
-                const task = this._pendingTaskQueue.shift()
-                if (task !== undefined) {
-                    this.run(task)
-                }
+            const task = this._pendingTaskQueue.shift()
+            if (task !== undefined) {
+                this.run(task)
             }
         })
     }

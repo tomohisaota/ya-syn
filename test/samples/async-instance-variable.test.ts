@@ -5,7 +5,9 @@ describe("Async Instance Variable", () => {
     class Sample {
         // lazy instance variable can be created when constructing instance
         readonly i = new LazyInitializer(async () => {
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise((resolve):void => {
+                setTimeout(resolve, 1000)
+            })
             return {}
         })
 

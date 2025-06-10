@@ -56,7 +56,7 @@ export class TaskExecutor {
         const {maxTasksInFlight, inFlightSemaphore, inExecutionSemaphore, taskSource} = params
         const intervalCalculator = new IntervalCalculator()
         const tasks: Promise<void>[] = []
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject): void => {
                 // create async function to use await
                 // promise from this async function is useless.
                 (async () => {
@@ -64,7 +64,9 @@ export class TaskExecutor {
                         while (true) {
                             const numberOfTasksToAdd = maxTasksInFlight - inFlightSemaphore.stats.numberOfRunningTasks
                             if (numberOfTasksToAdd === 0) {
-                                await new Promise(r => setTimeout(r, intervalCalculator.interval))
+                                await new Promise((r): void => {
+                                    setTimeout(r, intervalCalculator.interval)
+                                })
                                 continue
                             }
                             for (let i = 0; i < numberOfTasksToAdd; i++) {
@@ -72,7 +74,9 @@ export class TaskExecutor {
                                 if (t.done) {
                                     // wait until all tasks complete
                                     while (inFlightSemaphore.stats.numberOfTasks !== 0) {
-                                        await new Promise(r => setTimeout(r, intervalCalculator.interval))
+                                        await new Promise((r): void => {
+                                            setTimeout(r, intervalCalculator.interval)
+                                        })
                                     }
                                     resolve()
                                     return
@@ -89,7 +93,9 @@ export class TaskExecutor {
                                     intervalCalculator.update(new Date().getTime() - startAt.getTime())
                                 }))
                             }
-                            await new Promise(r => setTimeout(r, 0))
+                            await new Promise((r):void => {
+                                setTimeout(r, 0)
+                            })
                         }
                     } catch (e) {
                         reject(e)

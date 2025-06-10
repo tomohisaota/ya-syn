@@ -21,8 +21,8 @@ export class Semaphore extends CoreSemaphore {
         throttle?: boolean
     }): Promise<void> {
         const r = await this._reentrantCallback.get()
-        return new Promise((resolve, reject) => {
-            r((isReentrant) => {
+        return new Promise((resolve, reject): void => {
+            r((isReentrant): void => {
                 if (isReentrant) {
                     if (this.raiseOnReentrant) {
                         throw new SynchronizerReentrantExecutionError()

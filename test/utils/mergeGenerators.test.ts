@@ -5,7 +5,9 @@ async function* numberAsyncGenerator(batch: number, max: number, throwErrorAt?: 
         if (i === throwErrorAt) {
             throw new Error(`Error at batch:${batch} i:${i}`)
         }
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve): void => {
+            setTimeout(resolve, 10)
+        })
         yield `${batch}-${i}`
     }
 }
