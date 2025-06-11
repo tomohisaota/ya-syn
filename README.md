@@ -106,6 +106,10 @@ npm install ya-syn
 
 # Version History
 
+- 1.3.3
+  - Expose Core Semaphore
+- 1.3.2
+  - Reduce memory usage
 - 1.3.1
     - Add eager option to LazyInitializer
     - Fix bug that executor doesn't wait until all tasks completes

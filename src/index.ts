@@ -2,6 +2,7 @@ export * from "./types"
 export * from "./errors"
 // Base components
 export * from "./LazyInitializer"
+export * from "./CoreSemaphore"
 export * from "./Semaphore"
 // Main component
 export * from "./SynchronizerProvider"
