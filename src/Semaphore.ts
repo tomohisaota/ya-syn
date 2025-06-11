@@ -15,13 +15,13 @@ export class Semaphore extends CoreSemaphore {
         super(concurrentExecution)
     }
 
-    async synchronized(cb: (isReentrant: boolean) => Promise<void>, params?: {
+    async synchronized<T>(cb: (isReentrant: boolean) => Promise<T>, params?: {
         onEvent?: (type: SynchronizerEventType) => void
         isCanceled?: () => boolean,
         throttle?: boolean
-    }): Promise<void> {
+    }): Promise<T> {
         const r = await this._reentrantCallback.get()
-        return new Promise((resolve, reject): void => {
+        return new Promise<T>((resolve, reject): void => {
             r((isReentrant): void => {
                 if (isReentrant) {
                     if (this.raiseOnReentrant) {
@@ -47,14 +47,14 @@ export class Semaphore extends CoreSemaphore {
                         return Promise.reject(new SynchronizerCancelError())
                     }
                     params?.onEvent?.("Acquired")
-                    return cb(false)
-                }).then(() => {
+                    return cb(false).then()
+                }).then((result) => {
                     params?.onEvent?.("Release")
                     params?.onEvent?.("Finish")
-                    resolve()
+                    resolve(result)
                 }).catch((e) => {
                     if (e instanceof SynchronizerCancelError) {
-                        resolve(Promise.resolve())
+                        reject(e)
                     } else {
                         params?.onEvent?.("Release")
                         params?.onEvent?.("Finish")
