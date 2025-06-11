@@ -19,9 +19,9 @@ export class CoreSemaphore {
         }
     }
 
-    synchronized(cb: () => Promise<void>): Promise<void> {
-        return new Promise<void>((resolve, reject): void => {
-            const task = () => {
+    synchronized<T>(cb: () => Promise<T>): Promise<T> {
+        return new Promise<T>((resolve, reject): void => {
+            const task = (): Promise<void> => {
                 return cb().then(resolve).catch(reject)
             }
             if (this._running < this.concurrentExecution) {

@@ -106,6 +106,8 @@ npm install ya-syn
 
 # Version History
 
+- 1.3.4
+  - Update Core Semaphore method signature
 - 1.3.3
   - Expose Core Semaphore
 - 1.3.2
