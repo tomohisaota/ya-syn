@@ -247,4 +247,17 @@ describe("WithTimeout", () => {
         await expect(Promise.all(tasks)).rejects.toThrow(SynchronizerTimeoutError)
 
     });
+
+    test.concurrent('many locks', async () => {
+        for (let i = 0; i < 100000; i++) {
+            const s = sp.forObject({}, 1)
+            await s.synchronized(async () => {
+                await s.synchronized(async () => {
+                    if (i % 1000 === 0) {
+                        console.log(process.memoryUsage().rss / 1024 / 1024)
+                    }
+                })
+            })
+        }
+    });
 })
