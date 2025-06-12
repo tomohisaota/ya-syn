@@ -9,6 +9,8 @@ export class CoreSemaphore {
 
     protected _running = 0
     protected readonly _pendingTaskQueue: (() => Promise<void>)[] = []
+    protected _onCompleteAll: (() => void)[] = []
+    protected _onComplete: (() => void)[] = []
 
     constructor(readonly concurrentExecution: number) {
         if (!Number.isInteger(concurrentExecution)) {
@@ -35,15 +37,59 @@ export class CoreSemaphore {
 
     }
 
+    async waitComplete(): Promise<void> {
+        if (this.numberOfTasks === 0) {
+            // no task, no wait
+            return
+        }
+        return new Promise<void>((resolve): void => {
+            this._onComplete.push(resolve)
+        })
+    }
+
+    async waitCompleteAll(): Promise<void> {
+        if (this.numberOfTasks === 0) {
+            // no task, no wait
+            return
+        }
+        return new Promise<void>((resolve): void => {
+            this._onCompleteAll.push(resolve)
+        })
+    }
+
     protected run(cb: () => Promise<void>): void {
         this._running++
         cb().finally(() => {
             this._running--
             const task = this._pendingTaskQueue.shift()
+            // Capture handlers before starting new task
+            let handlers: (() => void)[] = []
+            if (this._onComplete.length > 0) {
+                handlers = handlers.concat(this._onComplete)
+                this._onComplete = []
+            }
+            if (task === undefined && this._onCompleteAll.length > 0) {
+                handlers = handlers.concat(this._onCompleteAll)
+                this._onCompleteAll = []
+            }
+            // Run next task if exists.
             if (task !== undefined) {
                 this.run(task)
             }
+            // Call handlers after starting new task
+            // This sequence make sure that tasks added by handlers will be executed after queued tasks
+            for (const i of handlers) {
+                i()
+            }
         })
+    }
+
+    get numberOfRunningTasks() {
+        return this._running
+    }
+
+    get numberOfTasks() {
+        return this._running + this._pendingTaskQueue.length
     }
 
 }
