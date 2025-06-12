@@ -1,6 +1,6 @@
 {
   "name": "ya-syn",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Yet Another Synchronizer for TypeScript.",
   "main": "./dist/index.js",
   "scripts": {

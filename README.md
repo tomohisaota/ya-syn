@@ -105,7 +105,8 @@ npm install ya-syn
 - You can create class variable which require asynchronous initialization.
 
 # Version History
-
+- 1.4.1
+  - Fix resource leak in reentrant check
 - 1.4.0
   - Add waitComplete/waitCompleteAll handlers to CoreSemaphore
   - Restructure task executor by replace Synchronizer with CoreSemaphore

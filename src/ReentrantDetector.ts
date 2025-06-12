@@ -10,18 +10,25 @@ const usingAsyncLocalStorage: ReentrantDetectorFactoryLazyFactory = () => {
     return new Promise<ReentrantDetectorFactory>((resolve, reject): void => {
         import("async_hooks").then(module => {
             class ReentrantMarker {
-                protected readonly storage = new module.AsyncLocalStorage<boolean>()
+                // Create only 1 AsyncLocalStorage
+                static readonly storage = new module.AsyncLocalStorage<ReadonlyArray<number>>(
+
+                )
+
+                static idGenerator = 0
+                // Assign unique id for each marker
+                readonly id = ReentrantMarker.idGenerator++
 
                 run(cb: ReentrantDetectorCallback): void {
-                    const SYNCHRONIZED = true
-                    if (this.storage.getStore() === SYNCHRONIZED) {
+                    const seqs = ReentrantMarker.storage.getStore() ?? []
+                    if (seqs.includes(this.id)) {
                         // Already in synchronized context
                         // Just run the callback
                         cb(true)
                     } else {
                         // First call
                         // Mark and run the callback
-                        this.storage.run(SYNCHRONIZED, () => cb(false))
+                        ReentrantMarker.storage.run([...seqs, this.id], () => cb(false))
                     }
                 }
 
