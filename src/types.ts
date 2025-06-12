@@ -50,7 +50,6 @@ export type SynchronizerParams = SynchronizerProviderParams
 }
 
 export type SynchronizerTask<T> = {
-    executionId?: string,
     task: T
 }
 
@@ -60,5 +59,4 @@ export type SynchronizerTaskExecutorParams<T> = {
     readonly taskSource: AsyncGenerator<SynchronizerTask<T>>
     readonly taskExecutor: (params: SynchronizerTask<T>) => Promise<void>
     readonly onTaskError?: (e: unknown) => void
-    readonly executorId?: string,
 }

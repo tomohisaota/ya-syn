@@ -106,6 +106,9 @@ npm install ya-syn
 
 # Version History
 
+- 1.4.0
+  - Add waitComplete/waitCompleteAll handlers to CoreSemaphore
+  - Restructure task executor by replace Synchronizer with CoreSemaphore
 - 1.3.4
   - Update Core Semaphore method signature
 - 1.3.3

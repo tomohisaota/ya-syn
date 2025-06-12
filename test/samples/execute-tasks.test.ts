@@ -6,7 +6,6 @@ describe("batch-execute", () => {
     test.concurrent("regular case", async () => {
         const {checker, sp} = createSynchronizerProvider(__filename)
         await sp.executeTasks({
-            executorId: "",
             maxTasksInFlight: 3,
             maxTasksInExecution: 2,
             taskSource: async function* () {
@@ -21,11 +20,10 @@ describe("batch-execute", () => {
                     }
                 }
             }(),
-            taskExecutor: async ({executionId}) => {
+            taskExecutor: async ({}) => {
                 await new Promise((r):void => {
                     setTimeout(r, 50)
                 })
-                console.log(`${executionId}:executed`)
             }
         })
         await checker.dumpLater()
@@ -34,7 +32,6 @@ describe("batch-execute", () => {
     test.concurrent("regular case with mergeAsyncGenerators", async () => {
         const {checker, sp} = createSynchronizerProvider(__filename)
         await sp.executeTasks({
-            executorId: "",
             maxTasksInFlight: 3,
             maxTasksInExecution: 2,
             taskSource: mergeAsyncGenerators([
@@ -51,11 +48,10 @@ describe("batch-execute", () => {
                     }
                 }(),
             ]),
-            taskExecutor: async ({executionId}) => {
+            taskExecutor: async ({}) => {
                 await new Promise((r):void => {
                     setTimeout(r, 50)
                 })
-                console.log(`${executionId}:executed`)
             }
         })
         await checker.dumpLater()
@@ -64,7 +60,6 @@ describe("batch-execute", () => {
     test.concurrent("no maxTasksInExecution", async () => {
         const {checker, sp} = createSynchronizerProvider(__filename)
         await sp.executeTasks({
-            executorId: "",
             maxTasksInFlight: 3,
             taskSource: async function* () {
                 for (let batch = 0; batch < 2; batch++) {
@@ -78,9 +73,8 @@ describe("batch-execute", () => {
                     }
                 }
             }(),
-            taskExecutor: async ({executionId}) => {
+            taskExecutor: async ({}) => {
                 await new Promise(r => setTimeout(r, 50))
-                console.log(`${executionId}:executed`)
             }
         })
         await checker.dumpLater()
@@ -94,7 +88,6 @@ describe("batch-execute", () => {
         let errorCount = 0
         const numOfTasks = 10
         await sp.executeTasks({
-            executorId: "",
             maxTasksInFlight: 3,
             maxTasksInExecution: 2,
             taskSource: async function* () {
@@ -126,14 +119,13 @@ describe("batch-execute", () => {
         const {checker, sp} = createSynchronizerProvider(__filename)
         const testError = new Error("test")
         await expect(sp.executeTasks({
-            executorId: "",
             maxTasksInFlight: 3,
             maxTasksInExecution: 2,
             taskSource: async function* () {
                 throw testError
             }(),
-            taskExecutor: async ({executionId}) => {
-                console.log(`${executionId}:executed`)
+            taskExecutor: async ({}) => {
+                console.log(`executed`)
             }
         })).rejects.toThrow(testError)
         await checker.dumpLater()

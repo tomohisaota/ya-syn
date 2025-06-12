@@ -1,101 +1,51 @@
-import {SynchronizerProvider} from "./SynchronizerProvider";
 import {SynchronizerTaskExecutorParams} from "./types";
-import {Synchronizer} from "./Synchronizer";
+import {CoreSemaphore} from "./CoreSemaphore";
 
-/*
-Adjust wait time when hitting maxTasksInExecution
-(100ms - 1000ms)
- */
-class IntervalCalculator {
-
-    count = 1
-    interval = 200
-
-    update(elapsed: number) {
-        const minInterval = 100
-        const maxInterval = 1000
-
-        const total = this.count * this.interval + elapsed
-        const u = total / (++this.count)
-        this.interval = Math.max(Math.min(u, maxInterval), minInterval)
-    }
-}
 
 export class TaskExecutor {
-    constructor(readonly sp: SynchronizerProvider) {
 
-    }
-
-    async executeTasks<T>(params: SynchronizerTaskExecutorParams<T>) {
+    async executeTasks<T>(params: SynchronizerTaskExecutorParams<T>): Promise<void> {
         const {
             maxTasksInFlight,
             maxTasksInExecution,
         } = params
-        const executorId = params.executorId ?? crypto.randomUUID()
-        const {sp} = this
-        const inFlightSemaphore = sp.createSynchronizer({
-            synchronizerId: `${executorId}-inFlightSemaphore`,
-            maxConcurrentExecution: maxTasksInFlight
-        })
+        const inFlightSemaphore = new CoreSemaphore(maxTasksInFlight)
         // inExecutionSemaphore is optional
-        const inExecutionSemaphore = maxTasksInExecution !== undefined ? sp.createSynchronizer({
-            synchronizerId: `${executorId}-inExecutionSemaphore`,
-            maxConcurrentExecution: maxTasksInExecution
-        }) : undefined
-        await this.feedTasks({
+        const inExecutionSemaphore = maxTasksInExecution !== undefined ? new CoreSemaphore(maxTasksInExecution) : undefined
+        return this.feedTasks({
             ...params,
             inFlightSemaphore,
             inExecutionSemaphore,
         })
     }
 
-    feedTasks<T>(params: {
-        inFlightSemaphore: Synchronizer,
-        inExecutionSemaphore?: Synchronizer,
+    async feedTasks<T>(params: {
+        inFlightSemaphore: CoreSemaphore,
+        inExecutionSemaphore?: CoreSemaphore,
     } & SynchronizerTaskExecutorParams<T>): Promise<void> {
         const {maxTasksInFlight, inFlightSemaphore, inExecutionSemaphore, taskSource} = params
-        const intervalCalculator = new IntervalCalculator()
-        const tasks: Promise<void>[] = []
         return new Promise<void>((resolve, reject): void => {
                 // create async function to use await
                 // promise from this async function is useless.
                 (async () => {
                     try {
                         while (true) {
-                            const numberOfTasksToAdd = maxTasksInFlight - inFlightSemaphore.stats.numberOfRunningTasks
-                            if (numberOfTasksToAdd === 0) {
-                                await new Promise((r): void => {
-                                    setTimeout(r, intervalCalculator.interval)
-                                })
-                                continue
-                            }
+                            const numberOfTasksToAdd = maxTasksInFlight - inFlightSemaphore.numberOfTasks
                             for (let i = 0; i < numberOfTasksToAdd; i++) {
                                 const t = await taskSource.next()
                                 if (t.done) {
-                                    // wait until all tasks complete
-                                    while (inFlightSemaphore.stats.numberOfTasks !== 0) {
-                                        await new Promise((r): void => {
-                                            setTimeout(r, intervalCalculator.interval)
-                                        })
-                                    }
                                     resolve()
                                     return
                                 }
-                                const {executionId, task} = t.value
-                                const startAt = new Date()
-                                tasks.push(this.executeTaskInSemaphore({
+                                const {task} = t.value
+                                this.executeTaskInSemaphore({
                                     ...params,
-                                    executionId: executionId ?? crypto.randomUUID(),
                                     inFlightSemaphore,
                                     inExecutionSemaphore,
                                     task,
-                                }).finally(() => {
-                                    intervalCalculator.update(new Date().getTime() - startAt.getTime())
-                                }))
+                                })
                             }
-                            await new Promise((r):void => {
-                                setTimeout(r, 0)
-                            })
+                            await inFlightSemaphore.waitComplete()
                         }
                     } catch (e) {
                         reject(e)
@@ -106,39 +56,33 @@ export class TaskExecutor {
             }
         ).finally(() => {
             // Wait until all tasks completes
-            return Promise.allSettled(tasks).then(() => Promise.resolve())
+            // Note that inExecutionSemaphore is inside inFlightSemaphore block.
+            return inFlightSemaphore.waitCompleteAll()
         })
     }
 
     executeTaskInSemaphore<T>(params: {
-        executionId: string,
-        inFlightSemaphore: Synchronizer,
-        inExecutionSemaphore?: Synchronizer,
+        inFlightSemaphore: CoreSemaphore,
+        inExecutionSemaphore?: CoreSemaphore,
         task: T,
-    } & SynchronizerTaskExecutorParams<T>): Promise<void> {
-        const {executionId, inFlightSemaphore, inExecutionSemaphore, task} = params
-        return inFlightSemaphore.synchronized({
-            executionId,
-            cb: (context) => {
-                if (inExecutionSemaphore === undefined) {
-                    return this.executeTask({...params, executionId, task})
-                }
-                return inExecutionSemaphore.synchronized({
-                    executionId: context.executionId, // Use same executionId
-                    cb: () => {
-                        return this.executeTask({...params, executionId, task})
-                    }
-                })
+    } & SynchronizerTaskExecutorParams<T>): void {
+        const {inFlightSemaphore, inExecutionSemaphore, task} = params
+        inFlightSemaphore.synchronized(() => {
+            if (inExecutionSemaphore === undefined) {
+                return this.executeTask({...params, task})
             }
+            return inExecutionSemaphore.synchronized(() => {
+                return this.executeTask({...params, task})
+            })
+        }).finally(() => {
+            // Do nothing
         })
     }
 
-    executeTask<T>({executionId, task, taskExecutor, onTaskError}: {
-        executionId: string,
+    async executeTask<T>({task, taskExecutor, onTaskError}: {
         task: T,
     } & SynchronizerTaskExecutorParams<T>): Promise<void> {
         return taskExecutor({
-            executionId,
             task
         }).catch(e => {
             // notify task failure, and keep processing tasks

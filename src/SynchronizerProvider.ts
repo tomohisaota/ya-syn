@@ -15,7 +15,7 @@ export class SynchronizerProvider {
     protected id = 0
     protected weakCacheProvider = new WeakCacheProvider<Synchronizer>()
     protected keyToSynchronizer = new Map<string, WeakRef<Synchronizer>>()
-    protected taskExecutor = new TaskExecutor(this)
+    protected taskExecutor = new TaskExecutor()
 
     constructor(readonly params?: SynchronizerProviderParams) {
     }
