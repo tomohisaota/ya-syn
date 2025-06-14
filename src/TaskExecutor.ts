@@ -1,4 +1,4 @@
-import {SynchronizerTaskExecutorParams} from "./types";
+import {ISemaphore, SynchronizerTaskExecutorParams} from "./types";
 import {CoreSemaphore} from "./CoreSemaphore";
 
 
@@ -10,8 +10,7 @@ export class TaskExecutor {
             maxTasksInExecution,
         } = params
         const inFlightSemaphore = new CoreSemaphore(maxTasksInFlight)
-        // inExecutionSemaphore is optional
-        const inExecutionSemaphore = maxTasksInExecution !== undefined ? new CoreSemaphore(maxTasksInExecution) : undefined
+        const inExecutionSemaphore = new CoreSemaphore(maxTasksInExecution ?? Number.MAX_VALUE)
         return this.feedTasks({
             ...params,
             inFlightSemaphore,
@@ -20,8 +19,8 @@ export class TaskExecutor {
     }
 
     async feedTasks<T>(params: {
-        inFlightSemaphore: CoreSemaphore,
-        inExecutionSemaphore?: CoreSemaphore,
+        inFlightSemaphore: ISemaphore,
+        inExecutionSemaphore: ISemaphore,
     } & SynchronizerTaskExecutorParams<T>): Promise<void> {
         const {maxTasksInFlight, inFlightSemaphore, inExecutionSemaphore, taskSource} = params
         return new Promise<void>((resolve, reject): void => {
@@ -30,8 +29,7 @@ export class TaskExecutor {
                 (async () => {
                     try {
                         while (true) {
-                            const numberOfTasksToAdd = maxTasksInFlight - inFlightSemaphore.numberOfTasks
-                            for (let i = 0; i < numberOfTasksToAdd; i++) {
+                            while(maxTasksInFlight - inFlightSemaphore.numberOfTasks) {
                                 const t = await taskSource.next()
                                 if (t.done) {
                                     resolve()
@@ -62,19 +60,16 @@ export class TaskExecutor {
     }
 
     executeTaskInSemaphore<T>(params: {
-        inFlightSemaphore: CoreSemaphore,
-        inExecutionSemaphore?: CoreSemaphore,
+        inFlightSemaphore: ISemaphore,
+        inExecutionSemaphore: ISemaphore,
         task: T,
     } & SynchronizerTaskExecutorParams<T>): void {
         const {inFlightSemaphore, inExecutionSemaphore, task} = params
-        inFlightSemaphore.synchronized(() => {
-            if (inExecutionSemaphore === undefined) {
-                return this.executeTask({...params, task})
-            }
-            return inExecutionSemaphore.synchronized(() => {
-                return this.executeTask({...params, task})
-            })
-        }).finally(() => {
+        inFlightSemaphore.synchronized(() =>
+            inExecutionSemaphore.synchronized(() =>
+                this.executeTask({...params, task})
+            )
+        ).finally(() => {
             // Do nothing
         })
     }

@@ -1,11 +1,12 @@
 import {SynchronizerInvalidError} from "./errors";
+import {ISemaphore} from "./types";
 
 /*
 Simple Semaphore implementation.
 No callback, no reentrant check.
  */
 
-export class CoreSemaphore {
+export class CoreSemaphore implements ISemaphore{
 
     protected _running = 0
     protected readonly _pendingTaskQueue: (() => Promise<void>)[] = []
