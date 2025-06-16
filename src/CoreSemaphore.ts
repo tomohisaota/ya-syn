@@ -6,7 +6,7 @@ Simple Semaphore implementation.
 No callback, no reentrant check.
  */
 
-export class CoreSemaphore implements ISemaphore{
+export class CoreSemaphore implements ISemaphore {
 
     protected _running = 0
     protected readonly _pendingTaskQueue: (() => Promise<void>)[] = []
@@ -69,7 +69,7 @@ export class CoreSemaphore implements ISemaphore{
                 handlers = handlers.concat(this._onComplete)
                 this._onComplete = []
             }
-            if (task === undefined && this._onCompleteAll.length > 0) {
+            if ((task === undefined) && (this._running === 0) && (this._onCompleteAll.length > 0)) {
                 handlers = handlers.concat(this._onCompleteAll)
                 this._onCompleteAll = []
             }

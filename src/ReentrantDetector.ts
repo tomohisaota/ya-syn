@@ -1,72 +1,62 @@
 import {CoreLazyInitializer} from "./CoreLazyInitializer";
 
-type ReentrantDetectorCallback = (reentrant: boolean) => void
-type ReentrantDetector = (cb: ReentrantDetectorCallback) => void
-type ReentrantDetectorFactory = () => ReentrantDetector
-type ReentrantDetectorFactoryLazyFactory = () => Promise<ReentrantDetectorFactory>
+type Context = ReadonlyArray<number>
 
+interface ContextStorage {
+    getStore(): Context | undefined
 
-const usingAsyncLocalStorage: ReentrantDetectorFactoryLazyFactory = () => {
-    return new Promise<ReentrantDetectorFactory>((resolve, reject): void => {
-        import("async_hooks").then(module => {
-            class ReentrantMarker {
-                // Create only 1 AsyncLocalStorage
-                static readonly storage = new module.AsyncLocalStorage<ReadonlyArray<number>>(
-
-                )
-
-                static idGenerator = 0
-                // Assign unique id for each marker
-                readonly id = ReentrantMarker.idGenerator++
-
-                run(cb: ReentrantDetectorCallback): void {
-                    const seqs = ReentrantMarker.storage.getStore() ?? []
-                    if (seqs.includes(this.id)) {
-                        // Already in synchronized context
-                        // Just run the callback
-                        cb(true)
-                    } else {
-                        // First call
-                        // Mark and run the callback
-                        ReentrantMarker.storage.run([...seqs, this.id], () => cb(false))
-                    }
-                }
-
-                get function(): ReentrantDetector {
-                    return this.run.bind(this)
-                }
-            }
-
-            resolve(() => new ReentrantMarker().function)
-        }).catch(reject)
-    })
+    run(context: Context, cb: () => void): void
 }
 
-const usingNoCheck: ReentrantDetectorFactoryLazyFactory = async () => {
-    return () =>
-        (cb: ReentrantDetectorCallback) => cb(false)
-}
+export class ReentrantDetector {
+    constructor(readonly storage: ContextStorage, readonly id: number) {
+    }
 
-export class LazyReentrantCallbackFactory extends CoreLazyInitializer<ReentrantDetectorFactory> {
-    constructor() {
-        super(async () => {
-            if (isNode()) {
-                return await usingAsyncLocalStorage()
-            } else {
-                // TODO: find a way to do the same thing on browser
-                return await usingNoCheck()
-            }
-        });
+    run(cb:  (reentrant: boolean) => void): void {
+        const ids = this.storage.getStore() ?? []
+        if (ids.includes(this.id)) {
+            // Already in synchronized context
+            // Just run the callback
+            cb(true)
+        } else {
+            // First call
+            // Mark and run the callback
+            this.storage.run([...ids, this.id], () => cb(false))
+        }
     }
 }
 
-const lazyReentrantCallbackFactory = new LazyReentrantCallbackFactory()
+export class ReentrantDetectorFactory {
+    // Create only 1 AsyncLocalStorage
+    readonly storageProvider = new CoreLazyInitializer<ContextStorage>(async () => {
+        if (!isNode()) {
+            return {
+                getStore: () => [],
+                run: (context: Context, cb: () => void) => cb()
+            }
+        }
+        return new Promise<ContextStorage>((resolve, reject): void => {
+            import("async_hooks").then(module => {
+                resolve(new module.AsyncLocalStorage<Context>)
+            }).catch(reject)
+        })
+    })
 
-export class LazyReentrantCallback extends CoreLazyInitializer<ReentrantDetector> {
+    // Assign unique id for each marker
+    idGenerator = 0
+
+    async create() {
+        const id = this.idGenerator++
+        return new ReentrantDetector(await this.storageProvider.get(), id)
+    }
+}
+
+const reentrantDetectorFactory = new ReentrantDetectorFactory()
+
+export class ReentrantDetectorProvider extends CoreLazyInitializer<ReentrantDetector> {
     constructor() {
         super(async () => {
-            const f = await lazyReentrantCallbackFactory.get()
-            return f()
+            return reentrantDetectorFactory.create()
         })
     }
 }
