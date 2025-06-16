@@ -1,5 +1,6 @@
 import {SynchronizerInvalidError} from "./errors";
 import {CoreSemaphore} from "./CoreSemaphore";
+import {ISemaphore} from "./types";
 
 export class CoreLazyInitializer<T> {
 
@@ -7,8 +8,8 @@ export class CoreLazyInitializer<T> {
 
     constructor(
         protected readonly _factory: () => Promise<T>,
-        protected _synchronizer = new CoreSemaphore(1),
-        protected eager?: boolean
+        protected readonly semaphore: ISemaphore = new CoreSemaphore(1),
+        readonly eager?: boolean
     ) {
         if (eager === true) {
             // Try eager loading. don't are about result nor error
@@ -22,7 +23,7 @@ export class CoreLazyInitializer<T> {
         if (this._target !== undefined) {
             return this._target
         }
-        await this._synchronizer.synchronized(async () => {
+        await this.semaphore.synchronized(async () => {
             if (this._target === undefined) {
                 this._target = await this._factory()
             }

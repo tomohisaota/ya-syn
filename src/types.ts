@@ -1,3 +1,17 @@
+export interface ISemaphore {
+
+    synchronized<T>(cb: () => Promise<T>): Promise<T>
+
+    waitComplete(): Promise<void>
+
+    waitCompleteAll(): Promise<void>
+
+    get numberOfRunningTasks(): number
+
+    get numberOfTasks(): number
+}
+
+
 export type SynchronizerStats = {
     maxConcurrentExecution: number
     numberOfTasks: number,

@@ -150,6 +150,7 @@ describe("batch-execute", () => {
                 }
             }(),
             taskExecutor: async () => {
+                await new Promise(r => setTimeout(r, 1))
                 count++
             }
         })

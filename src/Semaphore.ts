@@ -1,5 +1,5 @@
 import {CoreSemaphore} from "./CoreSemaphore";
-import {LazyReentrantCallback} from "./ReentrantDetector";
+import {ReentrantDetectorProvider} from "./ReentrantDetector";
 import {SynchronizerEventType} from "./types";
 import {SynchronizerReentrantExecutionError, SynchronizerThrottleError} from "./errors";
 
@@ -8,7 +8,7 @@ class SynchronizerCancelError extends Error {
 
 export class Semaphore extends CoreSemaphore {
 
-    protected readonly _reentrantCallback = new LazyReentrantCallback()
+    protected readonly _reentrantDetector = new ReentrantDetectorProvider()
     private _runningWithoutReenter = 0
 
     constructor(concurrentExecution: number, readonly raiseOnReentrant = false) {
@@ -20,9 +20,9 @@ export class Semaphore extends CoreSemaphore {
         isCanceled?: () => boolean,
         throttle?: boolean
     }): Promise<T> {
-        const r = await this._reentrantCallback.get()
+        const r = await this._reentrantDetector.get()
         return new Promise<T>((resolve, reject): void => {
-            r((isReentrant): void => {
+            r.run((isReentrant): void => {
                 if (isReentrant) {
                     if (this.raiseOnReentrant) {
                         throw new SynchronizerReentrantExecutionError()
