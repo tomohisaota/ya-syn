@@ -9,3 +9,4 @@ export * from "./SynchronizerProvider"
 // Other components
 export * from "./CachedProvider"
 export * from "./utils"
+export * from "./ProcessMonitor"
