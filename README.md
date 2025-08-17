@@ -105,6 +105,8 @@ npm install ya-syn
 - You can create class variable which require asynchronous initialization.
 
 # Version History
+- 1.5.0
+  - Add Process Monitor
 - 1.4.2
   - Fix bug in waitCompleteAll
 - 1.4.1
