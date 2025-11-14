@@ -36,73 +36,22 @@ stateDiagram-v2
 npm install ya-syn
 ```
 
-## Use cases
+# Documentation
 
-- Please check test/samples for all the use cases
+For detailed architecture, usage examples, and API documentation, please visit our **[Wiki](https://github.com/tomohisaota/ya-syn/wiki)**:
 
-### Use case:  [Global Synchronizer Provider](test/samples/global-sychronizer-provider.test.ts)
+- **[🇺🇸 English Documentation](https://github.com/tomohisaota/ya-syn/wiki/English)**
+- **[🇯🇵 日本語ドキュメント](https://github.com/tomohisaota/ya-syn/wiki/日本語)**
 
-- It is recommended to create global synchronizer provider to configure ids and logging in one place.
-
-### Use case:  [Lock](test/samples/lock.test.ts)
-
-- Simple reentrant lock. concurrency == 1
-
-### Use case: [Semaphore](test/samples/semaphore.test.ts)
-
-- Simple reentrant semaphore. concurrency > 1
-
-### Use case: [Class Synchronizer](test/samples/lock-by-class.test.ts)
-
-- You can obtain synchronizer for given class
-
-### Use case: [Instance Synchronizer](test/samples/lock-by-instance.test.ts)
-
-- You can obtain synchronizer for given class
-- Synchroinzer provider keeps weak ref to the key object. When the object get freed, synchronizer instance will be freed
-  too
-
-### Use case: [Key Synchronizer](test/samples/lock-by-key.test.ts)
-
-- synchronizer provider keeps string to synchronizer map
-    - Note: This mapping is not weak reference.
-- You can nest multiple synchronizer
-    - Main synchronizer to limit number of concurrent requests to 3
-    - Per host synchronizer to limit number of concurrent requests to same host to 1
-
-### Use case: [CacheProvider](test/samples/cache-provider.test.ts)
-
-- Object cache with asynchronous factory callback
-- You can specify default TTL
-- You can override ttl when you get cache
-
-### Use case: [TaskExecutor](test/samples/execute-tasks.test.ts)
-
-- Execute task in parallel using asynchronous generator pattern
-
-### Use case: [mergeGenerators](src/utils/mergeGenerators.ts)
-
-- utility function to merge multiple asynchronous generator into one
-- TaskExecutor can process multiple async generators using mergeGenerators
-
-# Other useful components
-
-## [LazyInitializer](src/LazyInitializer.ts)
-
-- Provider class with asynchronous factory callback.
-
-### Use case: [Async Singleton](test/samples/async-singleton.test.ts)
-
-- You can create top level singleton instance with asynchronous initialization
-- factory method is called only once
-
-### Use case: [Async Instance Variable](test/samples/async-instance-variable.test.ts)
-
-- You can create instance variable which require asynchronous initialization.
-
-### Use case: [Async Class Variable](test/samples/async-class-variable.test.ts)
-
-- You can create class variable which require asynchronous initialization.
+The wiki includes:
+- **Architecture Overview**: Core Semaphore, Semaphore, Synchronizer design patterns
+- **SynchronizerProvider**: Factory pattern for managing synchronizers with `forKey()` and `forObject()`
+- **Synchronizer**: High-level interface with timeout, throttle, event monitoring, and statistics
+- **LazyInitializer**: Async singleton pattern with reentrancy detection
+- **CachedProvider**: TTL-based async cache with Double-Check Locking pattern
+- **WeakIndexMap**: Weak reference map for managing objects by parameters
+- **TaskExecutor**: Async generator-based task processing with concurrency control
+- **Practical Examples**: API rate limiting, database connection pools, batch processing, and more
 
 # Version History
 - 1.6.0
