@@ -1,5 +1,10 @@
 # ya-syn
 
+[![CodeQL](https://github.com/tomohisaota/ya-syn/workflows/CodeQL/badge.svg)](https://github.com/tomohisaota/ya-syn/actions/workflows/codeql.yml)
+[![Security Audit](https://github.com/tomohisaota/ya-syn/workflows/Security%20Audit/badge.svg)](https://github.com/tomohisaota/ya-syn/actions/workflows/security-audit.yml)
+[![npm version](https://badge.fury.io/js/ya-syn.svg)](https://www.npmjs.com/package/ya-syn)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Yet Another Synchronizer for TypeScript.
 
 - Promise based synchronization
@@ -35,6 +40,16 @@ stateDiagram-v2
 ```shell
 npm install ya-syn
 ```
+
+# Security
+
+This project uses automated security scanning:
+
+- **CodeQL Analysis**: Static code analysis for security vulnerabilities
+- **Dependabot**: Automated dependency updates and vulnerability alerts
+- **npm audit**: Regular security audits of production dependencies
+
+Current status: [![CodeQL](https://github.com/tomohisaota/ya-syn/workflows/CodeQL/badge.svg)](https://github.com/tomohisaota/ya-syn/actions/workflows/codeql.yml) [![Security Audit](https://github.com/tomohisaota/ya-syn/workflows/Security%20Audit/badge.svg)](https://github.com/tomohisaota/ya-syn/actions/workflows/security-audit.yml)
 
 # Documentation
 
