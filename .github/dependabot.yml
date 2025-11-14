@@ -1,0 +1,46 @@
+version: 2
+updates:
+  # npm依存関係の脆弱性チェック
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    # 自動的にPRを作成
+    open-pull-requests-limit: 10
+    # セマンティックバージョニングに基づいてPRをグループ化
+    groups:
+      # パッチバージョンをまとめる
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      # マイナーバージョンをまとめる
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+    # コミットメッセージのプレフィックス
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # レビュアーとアサイン先（必要に応じて設定）
+    # reviewers:
+    #   - "tomohisaota"
+    # assignees:
+    #   - "tomohisaota"
+
+  # GitHub Actionsのワークフローファイルもチェック
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    commit-message:
+      prefix: "chore(ci)"
