@@ -49,7 +49,7 @@ Wikiの焦点：
 wiki/
 ├── Home.md          # 言語選択
 ├── English.md       # 英語版ドキュメント
-└── 日本語.md         # 日本語版ドキュメント
+└── Japanese.md      # 日本語版ドキュメント
 ```
 
 ### 将来の構成
@@ -91,7 +91,7 @@ git pull origin master
 
 ```bash
 # まず日本語版を編集・更新
-vim 日本語.md
+vim Japanese.md
 
 # 次に英語版を翻訳・更新
 vim English.md
@@ -161,7 +161,7 @@ GitHubで直接wikiページを編集することもできます：
 
 - `Home.md` - 言語選択（固定名）
 - `English.md` - 英語版ドキュメント
-- `日本語.md` - 日本語版ドキュメント
+- `Japanese.md` - 日本語版ドキュメント
 
 ### 将来の規則
 
