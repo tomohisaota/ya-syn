@@ -56,7 +56,7 @@ Current status: [![CodeQL](https://github.com/tomohisaota/ya-syn/workflows/CodeQ
 For detailed architecture, usage examples, and API documentation, please visit our **[Wiki](https://github.com/tomohisaota/ya-syn/wiki)**:
 
 - **[🇺🇸 English Documentation](https://github.com/tomohisaota/ya-syn/wiki/English)**
-- **[🇯🇵 日本語ドキュメント](https://github.com/tomohisaota/ya-syn/wiki/日本語)**
+- **[🇯🇵 日本語ドキュメント](https://github.com/tomohisaota/ya-syn/wiki/Japanese)**
 
 The wiki includes:
 - **Architecture Overview**: Core Semaphore, Semaphore, Synchronizer design patterns
