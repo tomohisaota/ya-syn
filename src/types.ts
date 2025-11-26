@@ -1,3 +1,5 @@
+import {IBucket} from "./Bucket";
+
 export interface ISemaphore {
 
     synchronized<T>(cb: () => Promise<T>): Promise<T>
@@ -70,6 +72,7 @@ export type SynchronizerTask<T> = {
 export type SynchronizerTaskExecutorParams<T> = {
     readonly maxTasksInFlight: number
     readonly maxTasksInExecution?: number
+    readonly bucket?: IBucket
     readonly taskSource: AsyncGenerator<SynchronizerTask<T>>
     readonly taskExecutor: (params: SynchronizerTask<T>) => Promise<void>
     readonly onTaskError?: (e: unknown) => void

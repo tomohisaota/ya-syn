@@ -4,6 +4,7 @@ export * from "./errors"
 export * from "./LazyInitializer"
 export * from "./CoreSemaphore"
 export * from "./Semaphore"
+export * from "./Bucket"
 // Main component
 export * from "./SynchronizerProvider"
 // Other components

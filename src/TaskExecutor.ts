@@ -64,12 +64,15 @@ export class TaskExecutor {
         inExecutionSemaphore: ISemaphore,
         task: T,
     } & SynchronizerTaskExecutorParams<T>): void {
-        const {inFlightSemaphore, inExecutionSemaphore, task} = params
-        inFlightSemaphore.synchronized(() =>
-            inExecutionSemaphore.synchronized(() =>
+        const {inFlightSemaphore, inExecutionSemaphore, bucket, task} = params
+        inFlightSemaphore.synchronized(async () => {
+            if (bucket) {
+                await bucket.acquire()
+            }
+            return inExecutionSemaphore.synchronized(() =>
                 this.executeTask({...params, task})
             )
-        ).finally(() => {
+        }).finally(() => {
             // Do nothing
         })
     }

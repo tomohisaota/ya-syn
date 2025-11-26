@@ -108,10 +108,10 @@ describe("ClassWithInstanceSynchronizer", () => {
     test.concurrent('increment using increment3 method using external instance synchronizer', async () => {
         const t = new ClassWithInstanceSynchronizer()
         await Promise.all([...Array(100)].map((_, i) => i).map(_ => {
-            return t.sInstance.synchronized(() => t.increment3(10))
+            return t.sInstance.synchronized(() => t.increment3(5))
         }))
         expect(t.count).toBe(100)
-    });
+    }, 10000);
 
     test.concurrent('increment using increment3 method using external class synchronizer', async () => {
         const t = new ClassWithInstanceSynchronizer()

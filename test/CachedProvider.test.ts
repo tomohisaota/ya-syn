@@ -95,11 +95,11 @@ describe("CachedProvider", () => {
                     return i
                 }
             }))
-        expect(await cache.get(100)).toBe(0)
-        await sleep(10) // still in cache
-        expect(await cache.get(100)).toBe(0)
-        await sleep(100) // wait until cache expires
-        expect(await cache.get(100)).toBe(1)
+        expect(await cache.get(500)).toBe(0)
+        await sleep(50) // still in cache
+        expect(await cache.get(500)).toBe(0)
+        await sleep(500) // wait until cache expires
+        expect(await cache.get(500)).toBe(1)
         expect(count).toBe(2)
         await checker.dumpLater()
     });
