@@ -1,5 +1,5 @@
 import {createSynchronizerProvider} from "../utils";
-import {mergeAsyncGenerators} from "../../src";
+import {mergeAsyncGenerators, TokenBucket, LeakyBucket} from "../../src";
 
 describe("batch-execute", () => {
 
@@ -182,5 +182,108 @@ describe("batch-execute", () => {
             }
         })
         expect(count).toBe(numOfTasks)
+    })
+})
+
+describe("batch-execute with bucket", () => {
+
+    test.concurrent("with TokenBucket - rate limiting", async () => {
+        const {sp} = createSynchronizerProvider(__filename)
+        const bucket = new TokenBucket({
+            capacity: 5,
+            refillRate: 5,
+            refillInterval: 500,  // 5 tokens per 500ms = 10/sec
+            initialTokens: 5
+        })
+
+        const numOfTasks = 10
+        let count = 0
+        const start = Date.now()
+
+        await sp.executeTasks({
+            maxTasksInFlight: 10,
+            bucket,
+            taskSource: async function* () {
+                for (let i = 0; i < numOfTasks; i++) {
+                    yield {task: i}
+                }
+            }(),
+            taskExecutor: async () => {
+                count++
+            }
+        })
+
+        const elapsed = Date.now() - start
+        expect(count).toBe(numOfTasks)
+        // First 5 tasks use initial tokens, then wait 500ms for refill
+        expect(elapsed).toBeGreaterThanOrEqual(400)
+        expect(elapsed).toBeLessThan(800)
+    })
+
+    test.concurrent("with LeakyBucket - steady rate", async () => {
+        const {sp} = createSynchronizerProvider(__filename)
+        const bucket = new LeakyBucket({
+            leakRate: 10,
+            leakInterval: 1000  // 10 per second = 100ms interval
+        })
+
+        const numOfTasks = 5
+        const timestamps: number[] = []
+        const start = Date.now()
+
+        await sp.executeTasks({
+            maxTasksInFlight: 10,
+            bucket,
+            taskSource: async function* () {
+                for (let i = 0; i < numOfTasks; i++) {
+                    yield {task: i}
+                }
+            }(),
+            taskExecutor: async () => {
+                timestamps.push(Date.now() - start)
+            }
+        })
+
+        expect(timestamps.length).toBe(numOfTasks)
+        // LeakyBucket enforces steady rate: ~0, ~100, ~200, ~300, ~400
+        expect(timestamps[0]).toBeLessThan(50)
+        for (let i = 1; i < timestamps.length; i++) {
+            const interval = timestamps[i] - timestamps[i - 1]
+            expect(interval).toBeGreaterThanOrEqual(80)
+        }
+    })
+
+    test.concurrent("bucket with maxTasksInExecution", async () => {
+        const {sp} = createSynchronizerProvider(__filename)
+        const bucket = new TokenBucket({
+            capacity: 10,
+            refillRate: 10,
+            refillInterval: 100,
+            initialTokens: 10
+        })
+
+        const numOfTasks = 6
+        let maxConcurrent = 0
+        let currentConcurrent = 0
+
+        await sp.executeTasks({
+            maxTasksInFlight: 10,
+            maxTasksInExecution: 2,  // Only 2 can execute at once
+            bucket,
+            taskSource: async function* () {
+                for (let i = 0; i < numOfTasks; i++) {
+                    yield {task: i}
+                }
+            }(),
+            taskExecutor: async () => {
+                currentConcurrent++
+                maxConcurrent = Math.max(maxConcurrent, currentConcurrent)
+                await new Promise(r => setTimeout(r, 50))
+                currentConcurrent--
+            }
+        })
+
+        // maxTasksInExecution should limit concurrent execution to 2
+        expect(maxConcurrent).toBe(2)
     })
 })

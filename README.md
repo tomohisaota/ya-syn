@@ -12,6 +12,7 @@ Yet Another Synchronizer for TypeScript.
 - Reentrant synchronization (nodejs only at this point)
 - Timeout
 - Throttling
+- Bucket based flow control (Token Bucket / Leaky Bucket)
 - Logging
 
 ```mermaid
@@ -69,6 +70,8 @@ The wiki includes:
 - **Practical Examples**: API rate limiting, database connection pools, batch processing, and more
 
 # Version History
+- 1.7.0
+  - Add Bucket based flow control (TokenBucket / LeakyBucket) for TaskExecutor
 - 1.6.0
   - Add WeakIndexMap
 - 1.5.0

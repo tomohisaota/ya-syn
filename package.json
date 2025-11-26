@@ -1,6 +1,6 @@
 {
   "name": "ya-syn",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Yet Another Synchronizer for TypeScript.",
   "main": "./dist/index.js",
   "scripts": {
@@ -20,7 +20,10 @@
     "async",
     "cache",
     "throttle",
-    "timeout"
+    "timeout",
+    "rate-limit",
+    "token-bucket",
+    "leaky-bucket"
   ],
   "license": "MIT",
   "devDependencies": {
