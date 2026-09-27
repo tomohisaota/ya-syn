@@ -7,6 +7,10 @@
 
 Yet Another Synchronizer for TypeScript.
 
+https://github.com/user-attachments/assets/7e6d3681-4ca9-4764-95f8-11ccdcc4cb3a
+
+*Intro video (46s): LazyInitializer, CachedProvider and TaskExecutor vs. hand-rolled code, drawn from real recordings. [日本語版](https://github.com/tomohisaota/ya-syn/wiki/Japanese)*
+
 - Promise based synchronization
 - Concurrency setting to support lock(n==1) and semaphore(n>1)
 - Reentrant synchronization (nodejs only at this point)
