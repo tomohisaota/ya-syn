@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>ya-syn Motion Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,200..800;1,200..800&family=Noto+Sans+JP:wght@400;500;700;900&display=block" rel="stylesheet" />
+<!--
+  ya-syn の紹介リール（42 秒）。
+  すべての動きは render(t) が t 秒時点の見た目を決め打ちで描く純関数なので、
+  プレビュー（requestAnimationFrame）と書き出し（render.mjs が 1 コマずつ seek）で同じ絵になる。
+  ?v=1 で 9:16、?render=1 で等倍表示（書き出し用）。
+  図の動きは trace.json（trace.mjs が ya-syn と素朴な実装を実際に動かした記録）を読んで描く。作らない。
+-->
+<style>
+  :root {
+    --plane: #e8eaed; --surface: #fbfbfc; --ink: #0f141a; --ink2: #46505c; --ink3: #7b8490;
+    --rule: #d3d8de; --grid: #e4e7eb; --axis: #c2c8cf; --faint: #dadee3;
+    --accent: #2f6fdb; --accent-lit: #6a9cf2; --naive: #e0703a; --fail: #c9302c; --wait: #aab4c0; --ok: #15936a;
+    --code-bg: #141a22;
+    --sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+    --mono: "JetBrains Mono", "Noto Sans JP", ui-monospace, monospace;
+    --W: 1920px; --H: 1080px;
+  }
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; left: 0; top: 0; width: var(--W); height: var(--H); overflow: hidden;
+    background: var(--plane); transform-origin: 0 0; }
+  #stage.v { --W: 1080px; --H: 1920px; }
+  .layer { position: absolute; inset: 0; }
+
+  /* ---- 冒頭の地。二つに割れて、見出しの地が現れる ---- */
+  .half { position: absolute; left: 0; width: 100%; height: 50%;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, #f5f6f8, #d8dce2 75%);
+    background-size: var(--W) var(--H); will-change: transform; }
+  #halfTop { top: 0; background-position: 0 0; }
+  #halfBot { top: 50%; background-position: 0 calc(var(--H) / -2); }
+  #seam { position: absolute; left: 50%; top: 50%; height: 2px; width: 0; transform: translate(-50%, -50%);
+    background: var(--accent-lit); box-shadow: 0 0 16px 2px rgba(106,156,242,.5), 0 0 50px 8px rgba(106,156,242,.25); }
+
+  /* ---- HUD ---- */
+  #hud { font-family: var(--mono); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: rgba(15,20,26,.45); }
+  #hud .t { position: absolute; white-space: nowrap; }
+  #hud .corner { position: absolute; width: 22px; height: 22px; border: 0 solid currentColor; }
+  .c-tl { left: 40px; top: 40px; border-left-width: 1.5px !important; border-top-width: 1.5px !important; }
+  .c-tr { right: 40px; top: 40px; border-right-width: 1.5px !important; border-top-width: 1.5px !important; }
+  .c-bl { left: 40px; bottom: 40px; border-left-width: 1.5px !important; border-bottom-width: 1.5px !important; }
+  .c-br { right: 40px; bottom: 40px; border-right-width: 1.5px !important; border-bottom-width: 1.5px !important; }
+  #hudTL { left: 76px; top: 44px; } #hudTR { right: 76px; top: 44px; }
+  #hudBL { left: 76px; bottom: 44px; } #hudBR { right: 76px; bottom: 44px; }
+  #recDot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--naive); margin-right: 10px; vertical-align: 1px; }
+
+  /* ---- 場面 1：漂う言葉と、ぶつかる呼び出し ---- */
+  #words { perspective: 900px; }
+  #words span { position: absolute; left: 50%; top: 50%; white-space: nowrap; font-family: var(--mono);
+    font-weight: 500; will-change: transform, opacity; }
+  #collide { position: absolute; left: 50%; top: 50%; width: 900px; margin-left: -450px; margin-top: -260px; }
+  #s1text { position: absolute; left: 0; right: 0; top: 50%; margin-top: 150px; text-align: center; color: var(--ink);
+    font-weight: 700; font-size: 70px; letter-spacing: .04em; }
+  #s1text code { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+  #stage.v #collide { width: 1000px; margin-left: -500px; margin-top: -330px; }
+  #stage.v #s1text { margin-top: 170px; font-size: 76px; line-height: 1.4; }
+
+  /* ---- 場面 2：見出し ---- */
+  #s2h { position: absolute; left: 0; right: 0; top: 330px; margin: 0; text-align: center; font-family: var(--mono);
+    font-weight: 800; font-size: 200px; letter-spacing: -.02em; }
+  #s2l { position: absolute; left: 0; right: 0; top: 590px; margin: 0; text-align: center; font-family: var(--mono);
+    font-size: 30px; letter-spacing: .12em; color: var(--ink3); }
+  #s2p { position: absolute; left: 0; right: 0; top: 660px; margin: 0; text-align: center; font-weight: 500;
+    font-size: 44px; letter-spacing: .06em; color: var(--ink2); }
+  #stage.v #s2h { top: 700px; font-size: 190px; }
+  #stage.v #s2l { top: 960px; font-size: 26px; }
+  #stage.v #s2p { top: 1040px; font-size: 44px; line-height: 1.6; }
+  .ch { display: inline-block; white-space: pre; will-change: transform, opacity, filter; }
+  .em { color: var(--accent); }
+
+  /* ---- 場面 3：三つの段 ---- */
+  #numeral { position: absolute; left: 60px; top: 150px; font-family: var(--mono); font-weight: 200;
+    font-size: 520px; line-height: 1; color: var(--faint); letter-spacing: -.06em; }
+  #stepText { position: absolute; left: 150px; top: 180px; width: 740px; }
+  #kicker { font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: .08em; color: var(--accent); }
+  #kicker::before { content: ""; display: inline-block; width: 44px; height: 2px; background: currentColor; vertical-align: 7px; margin-right: 14px; }
+  #stepH { font-weight: 900; font-size: 82px; line-height: 1.15; margin: 18px 0 14px -4px; letter-spacing: .02em; }
+  #stepSub { font-weight: 700; font-size: 31px; color: var(--ink); }
+  #code { margin-top: 30px; background: var(--code-bg); color: #d6dde6; border-radius: 16px; padding: 24px 28px;
+    font-family: var(--mono); font-size: 21px; line-height: 1.55; white-space: pre; font-variant-ligatures: none; box-shadow: 0 24px 50px -26px rgba(15,20,26,.55); }
+  #code .ln { display: block; will-change: transform, opacity; }
+  #code .k { color: #8fb8ff; } #code .s { color: #9fd9a8; } #code .c { color: #7f8a99; } #code .n { color: #f3a683; }
+  #code .a { color: #ffd479; font-weight: 700; }
+  #callout { margin-top: 24px; font-size: 23px; line-height: 1.65; color: var(--ink2); }
+  #callout b { font-family: var(--mono); font-weight: 700; }
+  #callout .bad { color: var(--naive); } #callout .good { color: var(--accent); }
+  #callout div { will-change: transform, opacity; }
+
+
+  #card { position: absolute; left: 950px; top: 170px; width: 880px; height: 690px; border-radius: 22px; background: var(--surface);
+    box-shadow: 0 1px 0 rgba(15,20,26,.04), 0 30px 70px -24px rgba(15,20,26,.3), 0 0 0 1px rgba(15,20,26,.06); overflow: hidden;
+    transform-origin: 0 0; }
+  #cardHead { position: absolute; left: 0; right: 0; top: 0; height: 60px; border-bottom: 1px solid var(--grid);
+    display: flex; align-items: center; padding: 0 26px; gap: 14px; font-family: var(--mono); font-size: 17px; color: var(--ink3); }
+  #cardHead .dots i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--faint); margin-right: 7px; }
+  #cardHead .logo { color: var(--ink); font-weight: 700; }
+  #cardPill { margin-left: auto; font-size: 15px; padding: 6px 14px; border-radius: 99px; background: #eef0f3; color: var(--ink2); letter-spacing: .04em; }
+  .panel { position: absolute; left: 18px; right: 18px; height: 300px; border-radius: 14px; border: 1.5px solid transparent; }
+  #panelA { top: 74px; } #panelB { top: 380px; }
+  .plabel { position: absolute; left: 18px; top: 14px; display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 700; }
+  .plabel .tag { font-family: var(--mono); font-size: 15px; font-weight: 500; padding: 4px 10px; border-radius: 7px; background: #eef0f3; color: var(--ink2); }
+  .plabel .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .plabel .sem { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--ink3); display: inline-flex; align-items: center; gap: 6px; }
+  .pcount { position: absolute; right: 18px; top: 8px; font-family: var(--mono); font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pcount small { font-size: 17px; font-weight: 500; color: var(--ink3); margin-right: 8px; }
+  .pchart { position: absolute; left: 0; top: 52px; width: 844px; height: 244px; }
+  .pchart text { font-family: var(--mono); }
+
+  #track { position: absolute; left: 0; right: 0; top: 950px; height: 60px; }
+  #trackLine { position: absolute; left: 0; right: 0; top: 0; height: 1.5px; background: var(--rule); }
+  #trackFill { position: absolute; left: 0; top: 0; height: 1.5px; background: var(--accent); }
+  .tnode { position: absolute; top: -7px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--plane); border: 1.5px solid var(--rule); }
+  .tnode span { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    font-family: var(--mono); font-size: 16px; letter-spacing: .08em; color: var(--ink3); }
+  #stage.v #numeral { left: 30px; top: 110px; font-size: 400px; }
+  #stage.v #stepText { left: 80px; top: 170px; width: 920px; }
+  #stage.v #stepH { font-size: 100px; }
+  #stage.v #code { font-size: 22px; }
+  #stage.v #card { left: 60px; top: 940px; transform: scale(1.0909); }
+  #stage.v #track { top: 1800px; }
+
+  /* ---- 場面 3.5：ほかにも ---- */
+  #featH { position: absolute; left: 0; right: 0; top: 180px; text-align: center; font-weight: 900;
+    font-size: 70px; letter-spacing: .04em; }
+  #featGrid { position: absolute; left: 50%; top: 350px; width: 1500px; margin-left: -750px; display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .fcard { background: var(--surface); border-radius: 18px; padding: 30px 34px; box-shadow: 0 20px 50px -24px rgba(15,20,26,.28), 0 0 0 1px rgba(15,20,26,.05); }
+  .fcard .k { font-family: var(--mono); font-size: 15px; letter-spacing: .16em; color: var(--accent); text-transform: uppercase; }
+  .fcard .h { font-family: var(--mono); font-weight: 700; font-size: 31px; margin-top: 12px; white-space: nowrap; }
+  .fcard .b { font-size: 21px; color: var(--ink2); margin-top: 10px; }
+  #stage.v #featH { top: 330px; font-size: 70px; line-height: 1.35; }
+  #stage.v #featGrid { top: 600px; width: 960px; margin-left: -480px; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  #stage.v .fcard { padding: 30px 28px; }
+  #stage.v .fcard .h { font-size: 27px; }
+
+  /* ---- 場面 4：締め ---- */
+  #endMark { position: absolute; left: 0; right: 0; top: 270px; text-align: center; font-family: var(--mono); font-weight: 800;
+    font-size: 190px; letter-spacing: -.02em; }
+  #endLatin { position: absolute; left: 0; right: 0; top: 520px; text-align: center; font-family: var(--mono); font-style: italic;
+    font-weight: 300; font-size: 36px; color: var(--accent); letter-spacing: .04em; }
+  #endTag { position: absolute; left: 0; right: 0; top: 600px; text-align: center; font-weight: 500; font-size: 38px; letter-spacing: .08em; }
+  #endCta { position: absolute; left: 50%; top: 700px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px;
+    background: var(--ink); color: #fff; font-family: var(--mono); font-size: 28px; font-weight: 500; padding: 18px 20px 18px 36px; border-radius: 99px; white-space: nowrap; }
+  #endCta .p { color: var(--accent-lit); }
+  #endCta i { display: inline-flex; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff;
+    align-items: center; justify-content: center; font-style: normal; font-size: 22px; }
+  #endFine { position: absolute; left: 0; right: 0; top: 810px; text-align: center; font-family: var(--mono); font-size: 18px;
+    letter-spacing: .1em; color: var(--ink3); }
+  #marquee { position: absolute; left: 0; bottom: -22px; white-space: nowrap; font-family: var(--mono); font-weight: 200;
+    font-size: 120px; color: var(--faint); }
+  #stage.v #endMark { top: 640px; font-size: 180px; }
+  #stage.v #endLatin { top: 885px; font-size: 30px; }
+  #stage.v #endTag { top: 960px; font-size: 40px; line-height: 1.6; }
+  #stage.v #endCta { top: 1120px; }
+  #stage.v #endFine { top: 1235px; font-size: 17px; line-height: 1.8; }
+
+  /* ---- プレビュー用の操作 ---- */
+  #ui { position: fixed; left: 12px; bottom: 12px; display: flex; gap: 10px; align-items: center; color: #aaa; font: 13px var(--mono); }
+  #ui input { width: 480px; }
+  body.render #ui { display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="light">
+    <div id="scene2">
+      <h1 id="s2h"></h1>
+      <p id="s2l"></p>
+      <p id="s2p"></p>
+    </div>
+    <div id="scene3">
+      <div id="numeral">01</div>
+      <div id="stepText">
+        <div id="kicker"></div>
+        <div id="stepH"></div>
+        <div id="stepSub"></div>
+        <div id="code"></div>
+        <div id="callout"></div>
+      </div>
+      <div id="card">
+        <div id="cardHead"><span class="dots"><i></i><i></i><i></i></span><span class="logo">trace.json</span><span id="cardArea"></span><span id="cardPill">recorded · node</span></div>
+        <div class="panel" id="panelA">
+          <div class="plabel"><span class="dot" style="background:var(--naive)"></span>自前で書くと<span class="tag" id="tagA"></span></div>
+          <div class="pcount" id="countA"></div>
+          <svg class="pchart" id="chartA" viewBox="0 0 844 244"></svg>
+        </div>
+        <div class="panel" id="panelB">
+          <div class="plabel"><span class="dot" style="background:var(--accent)"></span>ya-syn<span class="tag" id="tagB"></span><span class="sem" id="semB"></span></div>
+          <div class="pcount" id="countB"></div>
+          <svg class="pchart" id="chartB" viewBox="0 0 844 244"></svg>
+        </div>
+      </div>
+      <div id="track"><div id="trackLine"></div><div id="trackFill"></div></div>
+    </div>
+    <div id="featScene">
+      <div id="featH"></div>
+      <div id="featGrid"></div>
+    </div>
+    <div id="scene4">
+      <div id="endMark">ya-<span class="em">syn</span></div>
+      <div id="endLatin">yet another synchronizer for typescript.</div>
+      <div id="endTag"></div>
+      <div id="endCta"><span><span class="p">$</span> npm install ya-syn</span><i>→</i></div>
+      <div id="endFine"></div>
+      <div id="marquee"></div>
+    </div>
+  </div>
+  <!-- 冒頭の地（場面 1） -->
+  <div class="layer" id="opening">
+    <div class="half" id="halfTop"></div>
+    <div class="half" id="halfBot"></div>
+    <div class="layer" id="scene1">
+      <div class="layer" id="words"></div>
+      <svg id="collide" viewBox="0 0 900 360"></svg>
+      <div id="s1text"></div>
+    </div>
+    <div id="seam"></div>
+  </div>
+  <div class="layer" id="hud">
+    <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="t" id="hudTL">ya-syn · v1.6.0</div>
+    <div class="t" id="hudTR"><span id="recDot"></span><span id="hudTime">00:00.00</span></div>
+    <div class="t" id="hudBL"></div>
+    <div class="t" id="hudBR">naive vs ya-syn</div>
+  </div>
+</div>
+<div id="ui"><button id="play">▶︎</button><input id="scrub" type="range" min="0" max="42" step="0.01" value="0" /><span id="tlabel">0.00</span></div>
+
+<script type="module">
+const TRACE = await (await fetch('./trace.json')).json();
+
+const params = new URLSearchParams(location.search);
+const VERT = params.has('v');
+const RENDER = params.has('render');
+const FPS = 30;
+const $ = (s) => document.querySelector(s);
+const stage = $('#stage');
+if (VERT) stage.classList.add('v');
+if (RENDER) document.body.classList.add('render');
+const W = VERT ? 1080 : 1920, H = VERT ? 1920 : 1080;
+
+// ---- 時間の道具 ----
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const eOut = (p) => 1 - Math.pow(1 - p, 3);
+const eInOut = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+const eBack = (p) => { const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const show = (el, o) => { el.style.opacity = o; el.style.visibility = o > 0.001 ? 'visible' : 'hidden'; };
+
+// ---- 記録から、図の行を組み立てる ----
+// どの段も同じ文法で描く：1 行 = 1 回の呼び出し。点 = 呼んだ時刻、細い破線 = 待っている間、
+// 太い帯 = その呼び出しが走らせた重い処理（connect / fetch / task）、行末の札 = 受け取った値。
+// 重い処理は、それを走らせた呼び出し（開始の直前に呼んだ行）の行に置く。
+function rowsFromCalls(calls, works, label) {
+  return calls.map((c, i) => {
+    const w = works.find((x) => x.start >= c.call - 1 && x.start <= c.call + 5 && !x.used);
+    if (w) w.used = true;
+    return { call: c.call, done: c.done, work: w ? [w.start, w.end] : null, tag: label(c), value: c.value };
+  });
+}
+const L = TRACE.lazy, C = TRACE.cache, T = TRACE.tasks;
+const LAZY = {
+  span: 620,
+  naive: rowsFromCalls(L.naive.calls, structuredClone(L.naive.runs), (c) => `#${c.value}`),
+  yasyn: rowsFromCalls(L.yasyn.calls, structuredClone(L.yasyn.runs), (c) => `#${c.value}`),
+};
+const CACHE = {
+  span: C.span,
+  naive: rowsFromCalls(C.naive.reqs, structuredClone(C.naive.fetches), (r) => `v${r.value}`),
+  yasyn: rowsFromCalls(C.yasyn.reqs, structuredClone(C.yasyn.fetches), (r) => `v${r.value}`),
+  // キャッシュが効いている間。cachedAt は取りに行く直前の時刻なので、値が届いてから cachedAt + TTL まで。
+  valid: (k) => C[k].fetches.map((f) => [f.end, f.start + C.ttl]),
+};
+const TASKS = { span: Math.max(T.yasyn.resolved, ...T.naive.rows.map((r) => r.end)) + 40 };
+
+// ---- 段の本文は、記録の数から組み立てる（書き写さない） ----
+const distinct = (a) => new Set(a).size;
+const burst = (k) => C[k].fetches.filter((f) => f.start >= C.requests[5] - 5).length;
+const BURST_N = C.requests.length - 5 - 2;
+const done = (rows) => rows.filter((r) => r.end !== undefined).length;
+const CALLOUT = [
+  [`自前：<b class="bad">connect() ×${L.naive.runs.length}</b>、接続が <b class="bad">${distinct(L.naive.calls.map((c) => c.value))} つ</b>できる。`,
+   `ya-syn：<b class="good">×${L.yasyn.runs.length}</b>。残りは鍵を待ち、全員が <b class="good">#${L.yasyn.calls[0].value}</b> を受け取る。`,
+   `循環依存は <b>${L.cycle.code}</b> の例外で止まる。`],
+  [`期限切れ直後の ${BURST_N} 件：自前は <b class="bad">fetch ×${burst('naive')}</b>、ya-syn は <b class="good">×${burst('yasyn')}</b>。`,
+   `待った側は、ロックの中でキャッシュを見直す。`,
+   `通して <b class="bad">${C.naive.fetches.length} 回</b> → <b class="good">${C.yasyn.fetches.length} 回</b>。`],
+  [`自前：<b class="bad">同時に ${T.naive.peakExecution} 本</b>、${T.naive.rejected}ms で reject。`,
+   `ya-syn：<b class="good">実行 ≤${T.yasyn.peakExecution}・保持 ≤${T.yasyn.peakInFlight}</b>。空いたぶんだけ読む。`,
+   `失敗は onTaskError へ。<b class="good">${done(T.yasyn.rows)} 件を最後まで</b>。`],
+];
+
+// ---- コード（小さな色づけ） ----
+const API = 'LazyInitializer|SynchronizerProvider|createCachedProvider|executeTasks|get|synchronized|numberOfTasks|waitComplete|_factory|next';
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const hl = (line) => esc(line).replace(
+  new RegExp(`(\\/\\/.*$)|("[^"]*")|\\b(import|from|const|await|new|async|function|if|return|while|true|undefined|this)\\b|\\b(${API})\\b|\\b(\\d+)\\b`, 'g'),
+  (m, c, s, k, a, n) => (c ? `<span class="c">${c}</span>` : s ? `<span class="s">${s}</span>` : k ? `<span class="k">${k}</span>`
+    : a ? `<span class="a">${a}</span>` : `<span class="n">${n}</span>`));
+
+// ---- ya-syn のセマフォ（脇役） ----
+// trace.json の sem は、ya-syn の中のセマフォが知らせた区切り（Acquire / Acquired / Release）を起きた順に並べたもの。
+// 図の主役は比べるタイムラインのまま。ya-syn の行に、鍵を取った印と、鍵・枠の受け渡し（Release → 次の Acquired）を細く添える。
+const SEM = { lazy: L.yasyn.sem, cache: C.yasyn.sem, tasks: T.yasyn.sem };
+const handoffs = (ev, only) => {
+  const last = {}, out = [];
+  ev.forEach((e, i) => {
+    if (!['Acquire', 'Acquired', 'Release'].includes(e.type)) return;
+    const k = e.sem ?? 'lock', prev = last[k];
+    if (e.type === 'Acquired' && (!only || k === only) && prev && prev.type === 'Release' && prev.t === e.t && prev.who !== e.who) out.push({ i, t: e.t, from: prev.who, to: e.who });
+    last[k] = e;
+  });
+  return out;
+};
+const HAND = { lazy: handoffs(SEM.lazy), cache: handoffs(SEM.cache), tasks: handoffs(SEM.tasks, 'inExecution') };
+// 行ごとに、鍵（枠）を取った区切りと、値を返した区切りの番号
+const semIndex = (ev, type, sem) => { const m = {}; ev.forEach((e, i) => { if (e.type === type && (!sem || e.sem === sem) && !(e.who in m)) m[e.who] = i; }); return m; };
+const ACQ = { lazy: semIndex(SEM.lazy, 'Acquired'), cache: semIndex(SEM.cache, 'Acquired'), tasks: semIndex(SEM.tasks, 'Acquired', 'inExecution') };
+const RET = { lazy: semIndex(SEM.lazy, 'return'), cache: semIndex(SEM.cache, 'return') };
+// いまの区切りまでで、何本が鍵（枠）を待ち、何本が持っているか
+function semCount(ev, idx, sem) {
+  let tasks = 0, running = 0;
+  for (let i = 0; i <= idx; i++) {
+    const e = ev[i];
+    if ((e.sem ?? null) !== (sem ?? null)) continue;
+    if (e.type === 'Acquire') tasks++;
+    if (e.type === 'Acquired') running++;
+    if (e.type === 'Release') { tasks--; running--; }
+  }
+  return { tasks, running, waiting: tasks - running };
+}
+
+// ---- 再生の時計 ----
+// 記録の 0ms から最後までを等速で流す。ただし ya-syn のセマフォが受け渡しをした区切り（同じ ms に並ぶ）でだけ、
+// ほんの少し止めて、1 つずつ渡るのが見えるようにする。止めている間も ms は記録のまま。
+const HOLD = 0.2;
+function makeClock(kind, span, linearSec) {
+  const ev = SEM[kind], holds = new Set(HAND[kind].map((h) => h.i));
+  const r = linearSec / span, pos = [];
+  let v = 0, ms = 0;
+  ev.forEach((e, i) => { v += (e.t - ms) * r; ms = e.t; pos.push(v); if (holds.has(i)) v += HOLD; });
+  const total = v + (span - ms) * r;
+  return { total, at(s) {
+    let i = -1;
+    for (let j = 0; j < pos.length; j++) if (pos[j] <= s) i = j;
+    if (i < 0) return { ms: Math.max(0, s) / r, idx: -1, holding: false };
+    const h = holds.has(i) ? HOLD : 0, next = i + 1 < ev.length ? ev[i + 1].t : span;
+    return { ms: Math.min(next, ev[i].t + Math.max(0, s - pos[i] - h) / r), idx: i, holding: s - pos[i] < h };
+  } };
+}
+
+// ---- 段 ----
+const S0 = 7.5;
+const STEPS = [
+  { id: 'lazy', num: '01', kicker: '01 · LazyInitializer', h: '一度だけ、作る。', sub: '同時に呼ばれても、初期化は 1 回。',
+    code: ['import { LazyInitializer } from "ya-syn"', '', 'const db = new LazyInitializer(() => connect())', '',
+      'await db.get()  // 何度呼んでも connect() は 1 回'],
+    area: `${L.callers.length} callers · connect ${L.connectMs}ms`, tagA: 'if (!db) db = await connect()', tagB: 'db.get()', callout: CALLOUT[0], clock: makeClock('lazy', LAZY.span, 5.2) },
+  { id: 'cache', num: '02', kicker: '02 · CachedProvider', h: '殺到させない。', sub: '期限切れの瞬間も、取りに行くのは 1 回。',
+    code: ['const sp = new SynchronizerProvider()', 'const rates = sp.createCachedProvider({', '  factory: () => fetchRates(),',
+      `  defaultTTL: ${C.ttl},`, '})', 'await rates.get()  // 切れても fetch は 1 回'],
+    area: `${C.requests.length} requests · TTL ${C.ttl}ms · fetch ${C.fetchMs}ms`, tagA: 'if (expired) v = await fetchRates()', tagB: 'rates.get()', callout: CALLOUT[1], clock: makeClock('cache', CACHE.span, 5.6) },
+  { id: 'tasks', num: '03', kicker: '03 · TaskExecutor', h: '流して、絞る。', sub: 'async generator を、上限を守って捌く。',
+    code: ['await sp.executeTasks({', `  maxTasksInFlight: ${T.inFlight},`, `  maxTasksInExecution: ${T.inExecution},`,
+      '  taskSource: jobs(),  // async generator', '  taskExecutor: ({ task }) => run(task),', '  onTaskError: (e) => report(e),', '})'],
+    area: `${T.durs.length} tasks · #${T.fail + 1} fails`, tagA: 'await Promise.all(jobs.map(run))', tagB: 'sp.executeTasks(…)', callout: CALLOUT[2], clock: makeClock('tasks', TASKS.span, 5.6) },
+];
+// 段の長さは、再生の時計（受け渡しで止まる分を含む）から決める。
+// 段の中の時刻：0.0 入る / play0〜play1 記録を再生 / そのあと本文
+{ let t0 = S0; for (const st of STEPS) {
+  st.play0 = 1.4; st.play1 = st.play0 + st.clock.total; st.dur = st.play1 + 2.4;
+  st.t0 = t0; st.t1 = t0 + st.dur; t0 = st.t1; } }
+
+// ---- 図を描く ----
+const CW = 844, CH = 244;
+const PX0 = 92, PX1 = 790, PY0 = 8, PY1 = 212;
+function axis(p, span, ticks, X) {
+  p.push(`<line x1="${PX0}" y1="${PY1}" x2="${PX1}" y2="${PY1}" stroke="#c2c8cf"/>`);
+  for (const v of ticks) {
+    p.push(`<line x1="${X(v)}" y1="${PY0}" x2="${X(v)}" y2="${PY1}" stroke="#e4e7eb"/>`);
+    p.push(`<text x="${X(v)}" y="${PY1 + 22}" text-anchor="middle" font-size="14" fill="#7b8490">${v}ms</text>`);
+  }
+}
+function playhead(p, X, tt, span, holding) {
+  if (tt <= 0 || tt >= span) return;
+  p.push(`<line x1="${X(tt)}" y1="${PY0 - 4}" x2="${X(tt)}" y2="${PY1}" stroke="${holding ? '#2f6fdb' : '#0f141a'}" stroke-width="1.5" stroke-opacity="${holding ? 0.8 : 0.55}"/>`);
+}
+// rows を tt の時点まで描く。color は重い処理の帯の色。
+function drawRows(p, rows, tt, X, { color, y0, pitch, bar, labels, tagSize = 14, idx }) {
+  rows.forEach((r, i) => {
+    const y = y0 + i * pitch;
+    if (labels) p.push(`<text x="${PX0 - 14}" y="${y + 5}" text-anchor="end" font-size="14" fill="#7b8490">${labels(i)}</text>`);
+    if (tt < r.call) return;
+    // ya-syn の行は、鍵を取るまでが待ち（破線）。同じ ms の受け渡しは、区切りの順に進める。
+    const got = r.acq !== undefined && idx >= r.acq;
+    const wEnd = r.acq !== undefined ? (got ? r.acqT : tt) : Math.min(r.done, tt);
+    if (wEnd > r.call + 1) p.push(`<line x1="${X(r.call)}" y1="${y}" x2="${X(wEnd)}" y2="${y}" stroke="#aab4c0" stroke-width="2" stroke-dasharray="4 4"/>`);
+    if (r.work && tt >= r.work[0]) {
+      const e = Math.min(r.work[1], tt);
+      p.push(`<rect x="${X(r.work[0])}" y="${y - bar / 2}" width="${Math.max(2, X(e) - X(r.work[0]))}" height="${bar}" rx="${bar / 2.5}" fill="${color}"/>`);
+    }
+    p.push(`<circle cx="${X(r.call)}" cy="${y}" r="${pitch > 24 ? 6 : 4}" fill="#fbfbfc" stroke="#0f141a" stroke-width="1.8"/>`);
+    if (got && r.acqT > r.call + 1) p.push(`<rect x="${X(r.acqT) - 1.5}" y="${y - (pitch > 24 ? 8 : 5)}" width="3" height="${pitch > 24 ? 16 : 10}" rx="1.5" fill="#2f6fdb"/>`);
+    if ((r.ret !== undefined ? idx >= r.ret : tt >= r.done) && r.tag) {
+      p.push(`<text x="${X(r.done) + 10}" y="${y + tagSize * 0.36}" font-size="${tagSize}" font-weight="700" fill="${r.tagColor ?? color}">${r.tag}</text>`);
+    }
+  });
+}
+
+// 受け渡し：前の持ち主の行から、次に鍵（枠）を取った行へ、細い縦線。いま渡った 1 本だけ濃く。
+function handoffLines(p, kind, X, rowY, idx, holding) {
+  const hs = HAND[kind].filter((h) => h.i <= idx);
+  hs.forEach((h, n) => {
+    const now = holding && n === hs.length - 1;
+    const x = X(h.t), y1 = rowY(h.from), y2 = rowY(h.to);
+    p.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2 - Math.sign(y2 - y1) * 5}" stroke="#2f6fdb" stroke-width="${now ? 2 : 1.2}" stroke-opacity="${now ? 0.95 : 0.3}"/>`);
+    if (now) p.push(`<circle cx="${x}" cy="${y2}" r="4" fill="#2f6fdb"/>`);
+  });
+}
+const withSem = (kind, rows) => rows.map((r, i) => ({ ...r, acq: ACQ[kind][i], acqT: ACQ[kind][i] !== undefined ? SEM[kind][ACQ[kind][i]].t : undefined, ret: RET[kind]?.[i] }));
+
+function drawLazy(svg, kind, tt, idx = Infinity, holding = false) {
+  const span = LAZY.span, X = (ms) => PX0 + (ms / span) * (PX1 - PX0);
+  const p = [];
+  axis(p, span, [0, 200, 400, 600], X);
+  let rows = LAZY[kind].map((r) => ({ ...r, tagColor: kind === 'naive' ? '#c9302c' : '#2f6fdb' }));
+  if (kind === 'yasyn') rows = withSem('lazy', rows);
+  drawRows(p, rows, tt, X, { color: kind === 'naive' ? '#e0703a' : '#2f6fdb', y0: 30, pitch: 40, bar: 18, labels: (i) => `get() ${i + 1}`, tagSize: 19, idx });
+  if (kind === 'yasyn') handoffLines(p, 'lazy', X, (w) => 30 + w * 40, idx, holding);
+  playhead(p, X, tt, span, holding);
+  svg.innerHTML = p.join('');
+  return LAZY[kind].filter((r) => r.work && r.work[0] <= tt).length;
+}
+
+function drawCache(svg, kind, tt, idx = Infinity, holding = false) {
+  const span = CACHE.span, X = (ms) => PX0 + (ms / span) * (PX1 - PX0);
+  const p = [];
+  axis(p, span, [0, 1000, 2000], X);
+  // 上の帯：キャッシュが効いている間
+  p.push(`<text x="${PX0 - 14}" y="${PY0 + 12}" text-anchor="end" font-size="13" fill="#15936a">cache</text>`);
+  for (const [a, b] of CACHE.valid(kind)) {
+    if (tt < a) continue;
+    p.push(`<rect x="${X(a)}" y="${PY0 + 3}" width="${X(Math.min(b, tt, span)) - X(a)}" height="10" rx="3" fill="#15936a" fill-opacity=".28"/>`);
+  }
+  let rows = CACHE[kind].map((r) => ({ ...r, tag: r.work ? r.tag : '' }));
+  if (kind === 'yasyn') rows = withSem('cache', rows);
+  drawRows(p, rows, tt, X, { color: kind === 'naive' ? '#e0703a' : '#2f6fdb', y0: 36, pitch: 14.6, bar: 10, labels: (i) => (i === 0 ? 'get()' : ''), idx });
+  if (kind === 'yasyn') handoffLines(p, 'cache', X, (w) => 36 + w * 14.6, idx, holding);
+  // キャッシュから返った呼び出しには、小さな印
+  rows.forEach((r, i) => {
+    if (!r.work && (r.ret !== undefined ? idx >= r.ret : tt >= r.done)) p.push(`<path d="M${X(r.done) + 8} ${36 + i * 14.6}l3 3 6-7" stroke="#15936a" stroke-width="2" fill="none" stroke-linecap="round"/>`);
+  });
+  playhead(p, X, tt, span, holding);
+  svg.innerHTML = p.join('');
+  return C[kind].fetches.filter((f) => f.start <= tt).length;
+}
+
+function drawTasks(svg, kind, tt, idx = Infinity, holding = false) {
+  const span = TASKS.span, X = (ms) => PX0 + (ms / span) * (PX1 - PX0);
+  const t = T[kind], p = [];
+  axis(p, span, [0, 300, 600, 900], X);
+  const y0 = 16, pitch = 19.5, bar = 12;
+  if (kind === 'naive' && tt >= t.rejected) {
+    p.push(`<rect x="${X(t.rejected)}" y="${PY0 - 4}" width="${X(Math.min(tt, span)) - X(t.rejected)}" height="${PY1 - PY0 + 4}" fill="#c9302c" fill-opacity=".06"/>`);
+    p.push(`<line x1="${X(t.rejected)}" y1="${PY0 - 4}" x2="${X(t.rejected)}" y2="${PY1}" stroke="#c9302c" stroke-width="2"/>`);
+    // 注記は、帯のない右側に置く
+    p.push(`<text x="${X(t.rejected) + 150}" y="${PY0 + 60}" font-size="15" font-weight="700" fill="#c9302c">Promise.all rejected</text>`);
+    p.push(`<text x="${X(t.rejected) + 150}" y="${PY0 + 80}" font-size="14" fill="#c9302c">— 残りは裏で走り続ける</text>`);
+  }
+  t.rows.forEach((r, i) => {
+    const y = y0 + i * pitch;
+    p.push(`<text x="${PX0 - 14}" y="${y + 5}" text-anchor="end" font-size="13" fill="#7b8490">task ${i + 1}</text>`);
+    if (tt < r.pulled) return;
+    // generator から取り出したが、まだ実行の枠が空いていない間
+    const wEnd = Math.min(r.start, tt);
+    if (wEnd > r.pulled + 1) p.push(`<line x1="${X(r.pulled)}" y1="${y}" x2="${X(wEnd)}" y2="${y}" stroke="#aab4c0" stroke-width="2" stroke-dasharray="4 4"/>`);
+    p.push(`<circle cx="${X(r.pulled)}" cy="${y}" r="3.2" fill="#fbfbfc" stroke="#0f141a" stroke-width="1.5"/>`);
+    const acq = kind === 'yasyn' ? ACQ.tasks[i] : undefined;
+    if (acq !== undefined ? idx >= acq : tt >= r.start) {
+      const e = Math.max(r.start, Math.min(r.end, tt));
+      const col = r.failed && tt >= r.end ? '#c9302c' : kind === 'naive' ? '#e0703a' : '#2f6fdb';
+      p.push(`<rect x="${X(r.start)}" y="${y - bar / 2}" width="${Math.max(2, X(e) - X(r.start))}" height="${bar}" rx="4" fill="${col}"/>`);
+      if (r.failed && tt >= r.end) p.push(`<text x="${X(r.end) + 8}" y="${y + 5}" font-size="14" font-weight="700" fill="#c9302c">✕ failed</text>`);
+    }
+  });
+  if (kind === 'yasyn') handoffLines(p, 'tasks', X, (w) => y0 + w * pitch, idx, holding);
+  playhead(p, X, tt, span, holding);
+  svg.innerHTML = p.join('');
+  const running = t.rows.filter((r) => r.start <= tt && tt < r.end).length;
+  const held = t.rows.filter((r) => r.pulled <= tt && tt < r.end).length;
+  return { running, held };
+}
+
+// ---- 1 文字ずつ出す見出し ----
+function chars(el, html) {
+  el.innerHTML = html.replace(/<br>|<em>(.*?)<\/em>|(.)/g, (m, em, c) => (m === '<br>' ? m : em
+    ? [...em].map((x) => `<span class="ch em">${x}</span>`).join('')
+    : `<span class="ch">${c}</span>`));
+  return [...el.querySelectorAll('.ch')];
+}
+function revealChars(list, t, start, gap = 0.045, dur = 0.5) {
+  list.forEach((c, i) => {
+    const p = eOut(seg(t, start + i * gap, start + i * gap + dur));
+    c.style.opacity = p;
+    c.style.transform = `translateY(${(1 - p) * 26}px)`;
+    c.style.filter = `blur(${(1 - p) * 8}px)`;
+  });
+}
+const TAGLINE = '非同期の「同時に」を、正しくさばく。';
+const s2h = chars($('#s2h'), 'ya-<em>syn</em>');
+const s2l = chars($('#s2l'), 'Yet Another Synchronizer for TypeScript');
+const s2p = chars($('#s2p'), VERT ? '非同期の「同時に」を、<br>正しくさばく。' : TAGLINE);
+
+// ---- 場面 1：漂う言葉 ----
+const WORDS = ['await', 'Promise.all', 'race condition', 'singleton', 'TTL', 'thundering herd', 'backpressure', 'mutex',
+  'semaphore', 'async function*', 'if (!db)', 'setTimeout', 'retry', 'concurrency', 'deadlock', 'cache stampede'];
+const wordEls = WORDS.map((w, i) => {
+  const el = document.createElement('span');
+  el.textContent = w;
+  $('#words').appendChild(el);
+  const a = (i / WORDS.length) * Math.PI * 2 + (i % 3) * 0.7;
+  const rad = (VERT ? 330 : 560) + (i % 4) * 90;
+  // 縦長では、中央の図と字幕のまわりに言葉を置かない。図より上か、字幕より下だけ。
+  const up = Math.sin(a) < 0, ya = Math.abs(Math.sin(a));
+  const y = VERT ? (up ? -(480 + ya * 360) : 440 + ya * 380) : Math.sin(a) * rad * 0.62;
+  return { el, x: Math.cos(a) * rad * (VERT ? 0.8 : 1.2), y, z0: -900 + (i % 5) * 260, size: 24 + (i % 4) * 8, hot: i % 5 === 0 };
+});
+// 中央の図：5 つの get() が、まだ無い db を見て、それぞれ connect() を呼んでしまう。記録（素朴な実装）のとおり 5 回。
+const HOOK_N = L.naive.runs.length;
+const HOOK_AT = (i) => 0.9 + i * 0.42;   // i 本目が connect() に届く時刻
+const hookPath = (i) => { const y = 40 + i * 70; return { a: [150, y], c: [420, y], b: [600, 180] }; };
+const qpt = ({ a, c, b }, u) => [0, 1].map((k) => (1 - u) * (1 - u) * a[k] + 2 * (1 - u) * u * c[k] + u * u * b[k]);
+function drawCollide(t) {
+  const p = [];
+  for (let i = 0; i < L.callers.length; i++) {
+    const h = hookPath(i);
+    p.push(`<text x="${h.a[0] - 14}" y="${h.a[1] + 7}" text-anchor="end" font-family="JetBrains Mono" font-size="20" fill="#46505c">get()</text>`);
+    p.push(`<path d="M${h.a} Q${h.c} ${h.b}" stroke="#c2c8cf" stroke-width="2" fill="none"/>`);
+    const u = seg(t, HOOK_AT(i) - 0.5, HOOK_AT(i));
+    if (u > 0 && u < 1) { const [x, y] = qpt(h, eInOut(u)); p.push(`<circle cx="${x}" cy="${y}" r="8" fill="#e0703a"/>`); }
+    p.push(`<circle cx="${h.a[0]}" cy="${h.a[1]}" r="6" fill="#fbfbfc" stroke="#0f141a" stroke-width="2"/>`);
+  }
+  const hit = Array.from({ length: HOOK_N }, (_, i) => t >= HOOK_AT(i)).filter(Boolean).length;
+  const flash = hit ? Math.exp(-6 * (t - HOOK_AT(hit - 1))) : 0;
+  p.push(`<rect x="600" y="130" width="230" height="100" rx="16" fill="#fbfbfc" stroke="${hit ? '#e0703a' : '#0f141a'}" stroke-width="${2.5 + flash * 4}"/>`);
+  p.push(`<text x="715" y="190" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="28" fill="#0f141a">connect()</text>`);
+  if (hit) p.push(`<text x="715" y="${290 - flash * 8}" text-anchor="middle" font-family="JetBrains Mono" font-weight="800" font-size="${46 + flash * 14}" fill="#e0703a">× ${hit}</text>`);
+  $('#collide').innerHTML = p.join('');
+}
+
+// ---- ほかにも ----
+const FEATS = [
+  ['lock · semaphore', 'synchronized()', 'n=1 でロック、n>1 でセマフォ'],
+  ['per key', 'forKey() / forObject()', 'キーやインスタンスごとに排他'],
+  ['limits', 'timeout() / throttle()', '待ちすぎ・詰まりすぎを例外に'],
+  ['reentrant', '再入の検出', 'Node.js では AsyncLocalStorage で追う'],
+  ['events', 'onEvent', 'Acquire → Release を統計つきで'],
+  ['generators', 'mergeAsyncGenerators', '複数の generator を一本にまとめる'],
+];
+$('#featGrid').innerHTML = FEATS.map(([k, h, b]) => `<div class="fcard"><div class="k">${k}</div><div class="h">${h}</div><div class="b">${b}</div></div>`).join('');
+const featCards = [...document.querySelectorAll('.fcard')];
+const featH = chars($('#featH'), VERT ? 'ほかにも、<br><em>ya-syn</em> で。' : 'ほかにも、<em>ya-syn</em> で。');
+const trackNodes = STEPS.map((s, i) => {
+  const n = document.createElement('div');
+  n.className = 'tnode';
+  n.style.left = `${[25, 50, 75][i]}%`;
+  n.innerHTML = `<span>${s.num} ${s.kicker.split(' · ')[1]}</span>`;
+  $('#track').appendChild(n);
+  return n;
+});
+$('#marquee').textContent = Array(8).fill('lazy · cache · tasks · lock · semaphore · ').join('');
+$('#endTag').innerHTML = VERT ? '非同期の「同時に」を、<br>正しくさばく。' : TAGLINE;
+$('#endFine').innerHTML = VERT ? 'github.com/tomohisaota/ya-syn<br>MIT · TypeScript · Node.js / Browser' : 'github.com/tomohisaota/ya-syn · MIT · TypeScript · Node.js / Browser';
+$('#hudBL').textContent = `trace · real runs · node ${TRACE.node}`;
+
+// ---- t 秒の絵 ----
+// ぶつかる → 見出し → 三つの段 → ほかにも → 締め
+const T1 = 4.5, TF = STEPS[STEPS.length - 1].t1, T4 = TF + 3.5, DUR = T4 + 4;
+let lastStep = -1;
+
+function render(t) {
+  $('#hudTime').textContent = `00:${t.toFixed(2).padStart(5, '0')}`;
+  show($('#hud'), 1 - seg(t, DUR - 0.8, DUR - 0.1) * 0.6);
+
+  // --- 場面 1 ---
+  const split = eInOut(seg(t, T1 + 0.2, T1 + 1.2));
+  $('#halfTop').style.transform = `translateY(${-split * H * 0.5}px)`;
+  $('#halfBot').style.transform = `translateY(${split * H * 0.5}px)`;
+  $('#seam').style.width = `${eOut(seg(t, T1 - 0.5, T1 + 0.15)) * W}px`;
+  show($('#seam'), seg(t, T1 - 0.5, T1 - 0.3) * (1 - seg(t, T1 + 0.6, T1 + 1.2)));
+  show($('#scene1'), 1 - seg(t, T1 - 0.4, T1));
+  show($('#opening'), t < T1 + 1.3 ? 1 : 0);
+  if (t < T1) drawCollide(t);
+  show($('#collide'), eOut(seg(t, 0.2, 1.0)));
+  wordEls.forEach((w, i) => {
+    const z = w.z0 + t * 175;
+    const o = clamp(seg(t, 0.2 + i * 0.08, 1.0 + i * 0.08)) * clamp(1 - (z - 300) / 400) * 0.9;
+    w.el.style.transform = `translate(-50%, -50%) translate3d(${w.x}px, ${w.y}px, ${z}px)`;
+    w.el.style.opacity = o;
+    w.el.style.fontSize = `${w.size}px`;
+    w.el.style.color = w.hot ? '#2f6fdb' : 'rgba(15,20,26,.5)';
+  });
+  const a1 = eOut(seg(t, 1.3, 2.1)), a2 = eOut(seg(t, 2.6, 3.4));
+  const span = (a, html) => `<span style="opacity:${a};display:inline-block;transform:translateY(${(1 - a) * 20}px);filter:blur(${(1 - a) * 6}px)">${html}</span>`;
+  $('#s1text').innerHTML = span(a1, 'その <code>await</code>、') + (VERT ? '<br>' : '') + span(a2, 'ぶつかっていませんか。');
+
+  // --- 場面 2：見出し ---
+  show($('#scene2'), seg(t, T1 + 0.3, T1 + 0.5) * (1 - seg(t, S0 - 0.35, S0)));
+  revealChars(s2h, t, T1 + 0.5, 0.09, 0.6);
+  revealChars(s2l, t, T1 + 1.1, 0.012, 0.4);
+  revealChars(s2p, t, T1 + 1.5, 0.035, 0.5);
+
+  // --- 場面 3：三つの段 ---
+  show($('#scene3'), seg(t, S0 - 0.1, S0 + 0.2) * (1 - seg(t, TF - 0.3, TF)));
+  const k = Math.min(STEPS.length - 1, Math.max(0, STEPS.findIndex((s) => t < s.t1)));
+  const st = STEPS[k < 0 ? STEPS.length - 1 : k];
+  const lt = t - st.t0;
+  if (k !== lastStep) {
+    // 段が替わったときだけ、文字とコードを差し替える
+    lastStep = k;
+    $('#numeral').textContent = st.num;
+    $('#kicker').textContent = st.kicker;
+    $('#stepH').textContent = st.h;
+    $('#stepSub').textContent = st.sub;
+    $('#code').innerHTML = st.code.map((l) => `<span class="ln">${hl(l) || ' '}</span>`).join('');
+    $('#callout').innerHTML = st.callout.map((l) => `<div>${l}</div>`).join('');
+    $('#cardArea').textContent = st.area;
+    if (st.tagA) { $('#tagA').textContent = st.tagA; $('#tagB').textContent = st.tagB; }
+  }
+  const inP = eOut(seg(lt, 0, 0.6)), outP = seg(t, st.t1 - 0.3, st.t1);
+  const last = k === STEPS.length - 1;
+  const fade = last ? 1 : 1 - outP;
+  $('#numeral').style.opacity = inP * fade;
+  $('#numeral').style.transform = `translateX(${(1 - inP) * -60}px)`;
+  $('#stepText').style.opacity = inP * fade;
+  $('#stepText').style.transform = `translateY(${(1 - inP) * 30}px)`;
+  [...document.querySelectorAll('#code .ln')].forEach((el, i) => {
+    const p = eOut(seg(lt, 0.4 + i * 0.1, 0.8 + i * 0.1));
+    el.style.opacity = p; el.style.transform = `translateX(${(1 - p) * 24}px)`;
+  });
+  [...document.querySelectorAll('#callout div')].forEach((el, i) => {
+    const p = eOut(seg(lt, st.play1 + 0.1 + i * 0.35, st.play1 + 0.6 + i * 0.35));
+    el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * 14}px)`;
+  });
+  // カードは段をまたいで残し、中身だけ差し替える。最初だけ下から入る。
+  const cardIn = eBack(seg(t, S0 + 0.1, S0 + 0.8));
+  const cardScale = VERT ? ' scale(1.0909)' : '';
+  $('#card').style.transform = `translateY(${(1 - cardIn) * 80}px)${cardScale}`;
+  $('#card').style.opacity = seg(t, S0 + 0.1, S0 + 0.4);
+  // 段が替わるとき、図だけ一瞬沈めてから入れ替える
+  const swap = k > 0 ? eOut(seg(lt, 0, 0.5)) : 1;
+  for (const id of ['#panelA', '#panelB']) $(id).style.opacity = swap * (last ? 1 : 1 - outP * 0.7);
+  $('#trackFill').style.width = `${seg(t, S0, TF - 0.3) * 100}%`;
+  trackNodes.forEach((n, i) => {
+    const on = t >= STEPS[i].t0 + 0.1;
+    n.style.background = on ? 'var(--accent)' : 'var(--plane)';
+    n.style.borderColor = on ? 'var(--accent)' : 'var(--rule)';
+    n.querySelector('span').style.color = on ? 'var(--ink)' : 'var(--ink3)';
+  });
+
+  // 記録の再生。play0 から、再生の時計（受け渡しで少し止まる）で流す。
+  const clk = lt < st.play0 ? { ms: 0, idx: -1, holding: false } : st.clock.at(lt - st.play0);
+  const tt = clk.ms, idx = clk.idx, hold = clk.holding;
+  const done = seg(lt, st.play1, st.play1 + 0.4);
+  const cA = $('#countA'), cB = $('#countB');
+  if (t >= S0 - 0.1 && t < TF) {
+    // ya-syn の見出しの横に、中のセマフォのいまを小さく
+    const lock = '<svg width="12" height="14" viewBox="0 0 12 14"><path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="1" y="6" width="10" height="8" rx="2" fill="currentColor"/></svg>';
+    if (st.id === 'tasks') {
+      const fl = semCount(SEM.tasks, idx, 'inFlight'), ex = semCount(SEM.tasks, idx, 'inExecution');
+      $('#semB').innerHTML = `${lock}inFlight ${fl.tasks}/${T.inFlight} · inExecution ${ex.running}/${T.inExecution}`;
+    } else {
+      const c = semCount(SEM[st.id], idx, null);
+      $('#semB').innerHTML = `${lock}${st.id === 'lazy' ? 'Semaphore' : 'Synchronizer'}(1) · 待ち ${c.waiting}`;
+    }
+    $('#semB').style.color = hold ? 'var(--accent)' : 'var(--ink3)';
+    if (st.id === 'lazy') {
+      const nA = drawLazy($('#chartA'), 'naive', tt), nB = drawLazy($('#chartB'), 'yasyn', tt, idx, hold);
+      cA.innerHTML = `<small>connect()</small><span style="color:var(--naive)">×${nA}</span>`;
+      cB.innerHTML = `<small>connect()</small><span style="color:var(--accent)">×${nB}</span>`;
+    } else if (st.id === 'cache') {
+      const nA = drawCache($('#chartA'), 'naive', tt), nB = drawCache($('#chartB'), 'yasyn', tt, idx, hold);
+      cA.innerHTML = `<small>fetch</small><span style="color:var(--naive)">×${nA}</span>`;
+      cB.innerHTML = `<small>fetch</small><span style="color:var(--accent)">×${nB}</span>`;
+    } else {
+      const a = drawTasks($('#chartA'), 'naive', tt), b = drawTasks($('#chartB'), 'yasyn', tt, idx, hold);
+      // 走り終えたあとは、記録の中の最大を出す
+      const nA = done > 0 ? T.naive.peakExecution : a.running;
+      const nB = done > 0 ? T.yasyn.peakExecution : b.running;
+      const hB = done > 0 ? T.yasyn.peakInFlight : b.held;
+      cA.innerHTML = `<small>${done > 0 ? 'peak' : 'running'}</small><span style="color:var(--naive)">${nA}</span>`;
+      cB.innerHTML = `<small>${done > 0 ? 'peak' : 'running'}</small><span style="color:var(--accent)">${nB}</span><small style="margin-left:18px">in flight</small><span style="color:var(--accent)">${hB}</span>`;
+    }
+  }
+  // 再生が終わったら、ya-syn の枠を青く縁取る
+  $('#panelB').style.borderColor = `rgba(47,111,219,${0.9 * done})`;
+  $('#panelB').style.background = `rgba(47,111,219,${0.035 * done})`;
+  $('#panelA').style.background = `rgba(224,112,58,${0.035 * done})`;
+
+  // --- 場面 3.5：ほかにも ---
+  show($('#featScene'), seg(t, TF, TF + 0.3) * (1 - seg(t, T4 - 0.3, T4)));
+  revealChars(featH, t, TF + 0.1, 0.05, 0.5);
+  featCards.forEach((c, i) => {
+    const p = eOut(seg(t, TF + 0.5 + i * 0.12, TF + 1.1 + i * 0.12));
+    c.style.opacity = p; c.style.transform = `translateY(${(1 - p) * 40}px)`;
+  });
+
+  // --- 場面 4：締め ---
+  show($('#scene4'), seg(t, T4, T4 + 0.35));
+  const m = eOut(seg(t, T4 + 0.15, T4 + 0.8));
+  $('#endMark').style.opacity = m; $('#endMark').style.filter = `blur(${(1 - m) * 12}px)`;
+  $('#endMark').style.letterSpacing = `${-0.02 + (1 - m) * 0.2}em`;
+  const l2 = eOut(seg(t, T4 + 0.6, T4 + 1.1));
+  $('#endLatin').style.opacity = l2; $('#endLatin').style.transform = `translateY(${(1 - l2) * 16}px)`;
+  const l3 = eOut(seg(t, T4 + 0.8, T4 + 1.3));
+  $('#endTag').style.opacity = l3; $('#endTag').style.transform = `translateY(${(1 - l3) * 16}px)`;
+  const l4 = eBack(seg(t, T4 + 1.1, T4 + 1.6));
+  $('#endCta').style.opacity = seg(t, T4 + 1.1, T4 + 1.3);
+  $('#endCta').style.transform = `translateX(-50%) scale(${0.85 + 0.15 * l4})`;
+  $('#endFine').style.opacity = seg(t, T4 + 1.4, T4 + 1.8);
+  $('#marquee').style.transform = `translateX(${-(t - T4) * 90}px)`;
+  $('#marquee').style.opacity = seg(t, T4 + 0.4, T4 + 1.2);
+}
+
+// ---- 書き出しとプレビュー ----
+window.__meta = { DUR, FPS, steps: STEPS.map((s) => ({ id: s.id, t0: s.t0, play: [s.t0 + s.play0, s.t0 + s.play1], t1: s.t1, holds: HAND[s.id].length })) };
+window.__render = (t) => render(t);
+// 日本語の書体は、字の範囲ごとに分かれて、初めて使われたときに読み込まれる（読み込むまで字が透明）。
+// 書き出しの前に全体を一度描いて、要る字をすべて読み込ませてから始める。
+window.__ready = document.fonts.ready.then(async () => {
+  for (let x = 0; x < DUR; x += 0.25) render(x);
+  for (let n = 0; n < 3; n++) { await document.fonts.ready; await new Promise((r) => setTimeout(r, 200)); }
+  lastStep = -1;
+  render(0);
+});
+if (!RENDER) {
+  const fit = () => { const s = Math.min(innerWidth / W, (innerHeight - 50) / H); stage.style.transform = `scale(${s})`; };
+  addEventListener('resize', fit); fit();
+  let playing = true, t0 = performance.now(), tcur = 0;
+  const scrub = $('#scrub');
+  scrub.max = DUR;
+  $('#play').onclick = () => { playing = !playing; t0 = performance.now() - tcur * 1000; };
+  scrub.oninput = () => { playing = false; tcur = +scrub.value; render(tcur); $('#tlabel').textContent = tcur.toFixed(2); };
+  const loop = (now) => {
+    if (playing) { tcur = ((now - t0) / 1000) % DUR; scrub.value = tcur; $('#tlabel').textContent = tcur.toFixed(2); render(tcur); }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

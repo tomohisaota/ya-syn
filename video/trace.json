@@ -1,0 +1,1580 @@
+{
+ "recordedAt": "2026-09-27T00:19:38.071Z",
+ "node": "v24.3.0",
+ "lazy": {
+  "callers": [
+   0,
+   40,
+   80,
+   120,
+   160
+  ],
+  "connectMs": 400,
+  "naive": {
+   "runs": [
+    {
+     "id": 0,
+     "start": 2,
+     "end": 404
+    },
+    {
+     "id": 1,
+     "start": 41,
+     "end": 443
+    },
+    {
+     "id": 2,
+     "start": 81,
+     "end": 483
+    },
+    {
+     "id": 3,
+     "start": 121,
+     "end": 522
+    },
+    {
+     "id": 4,
+     "start": 161,
+     "end": 562
+    }
+   ],
+   "calls": [
+    {
+     "caller": 0,
+     "call": 2,
+     "done": 404,
+     "value": 0
+    },
+    {
+     "caller": 1,
+     "call": 41,
+     "done": 443,
+     "value": 1
+    },
+    {
+     "caller": 2,
+     "call": 81,
+     "done": 483,
+     "value": 2
+    },
+    {
+     "caller": 3,
+     "call": 121,
+     "done": 522,
+     "value": 3
+    },
+    {
+     "caller": 4,
+     "call": 161,
+     "done": 562,
+     "value": 4
+    }
+   ]
+  },
+  "yasyn": {
+   "runs": [
+    {
+     "id": 0,
+     "start": 7,
+     "end": 408
+    }
+   ],
+   "calls": [
+    {
+     "caller": 0,
+     "call": 5,
+     "done": 408,
+     "value": 0
+    },
+    {
+     "caller": 1,
+     "call": 42,
+     "done": 408,
+     "value": 0
+    },
+    {
+     "caller": 2,
+     "call": 81,
+     "done": 408,
+     "value": 0
+    },
+    {
+     "caller": 3,
+     "call": 122,
+     "done": 408,
+     "value": 0
+    },
+    {
+     "caller": 4,
+     "call": 161,
+     "done": 408,
+     "value": 0
+    }
+   ],
+   "sem": [
+    {
+     "t": 5,
+     "type": "call",
+     "who": 0
+    },
+    {
+     "t": 7,
+     "type": "Acquire",
+     "who": 0
+    },
+    {
+     "t": 7,
+     "type": "Acquired",
+     "who": 0
+    },
+    {
+     "t": 7,
+     "type": "work",
+     "who": null,
+     "id": 0
+    },
+    {
+     "t": 42,
+     "type": "call",
+     "who": 1
+    },
+    {
+     "t": 42,
+     "type": "Acquire",
+     "who": 1
+    },
+    {
+     "t": 81,
+     "type": "call",
+     "who": 2
+    },
+    {
+     "t": 82,
+     "type": "Acquire",
+     "who": 2
+    },
+    {
+     "t": 122,
+     "type": "call",
+     "who": 3
+    },
+    {
+     "t": 122,
+     "type": "Acquire",
+     "who": 3
+    },
+    {
+     "t": 161,
+     "type": "call",
+     "who": 4
+    },
+    {
+     "t": 161,
+     "type": "Acquire",
+     "who": 4
+    },
+    {
+     "t": 408,
+     "type": "worked",
+     "who": null,
+     "id": 0
+    },
+    {
+     "t": 408,
+     "type": "Release",
+     "who": 0
+    },
+    {
+     "t": 408,
+     "type": "Acquired",
+     "who": 1
+    },
+    {
+     "t": 408,
+     "type": "return",
+     "who": 0,
+     "value": 0
+    },
+    {
+     "t": 408,
+     "type": "Release",
+     "who": 1
+    },
+    {
+     "t": 408,
+     "type": "Acquired",
+     "who": 2
+    },
+    {
+     "t": 408,
+     "type": "return",
+     "who": 1,
+     "value": 0
+    },
+    {
+     "t": 408,
+     "type": "Release",
+     "who": 2
+    },
+    {
+     "t": 408,
+     "type": "Acquired",
+     "who": 3
+    },
+    {
+     "t": 408,
+     "type": "return",
+     "who": 2,
+     "value": 0
+    },
+    {
+     "t": 408,
+     "type": "Release",
+     "who": 3
+    },
+    {
+     "t": 408,
+     "type": "Acquired",
+     "who": 4
+    },
+    {
+     "t": 408,
+     "type": "return",
+     "who": 3,
+     "value": 0
+    },
+    {
+     "t": 408,
+     "type": "Release",
+     "who": 4
+    },
+    {
+     "t": 408,
+     "type": "return",
+     "who": 4,
+     "value": 0
+    }
+   ]
+  },
+  "cycle": {
+   "error": "SynchronizerReentrantExecutionError",
+   "code": "ReentrantExecution"
+  }
+ },
+ "cache": {
+  "ttl": 1000,
+  "fetchMs": 250,
+  "span": 2400,
+  "requests": [
+   0,
+   30,
+   60,
+   450,
+   800,
+   1250,
+   1270,
+   1290,
+   1310,
+   1330,
+   1700,
+   2050
+  ],
+  "naive": {
+   "fetches": [
+    {
+     "id": 0,
+     "start": 1,
+     "end": 252
+    },
+    {
+     "id": 1,
+     "start": 32,
+     "end": 282
+    },
+    {
+     "id": 2,
+     "start": 61,
+     "end": 312
+    },
+    {
+     "id": 3,
+     "start": 1252,
+     "end": 1504
+    },
+    {
+     "id": 4,
+     "start": 1272,
+     "end": 1523
+    },
+    {
+     "id": 5,
+     "start": 1292,
+     "end": 1544
+    },
+    {
+     "id": 6,
+     "start": 1311,
+     "end": 1562
+    },
+    {
+     "id": 7,
+     "start": 1331,
+     "end": 1581
+    }
+   ],
+   "reqs": [
+    {
+     "req": 0,
+     "call": 1,
+     "done": 253,
+     "value": 0,
+     "fetched": true
+    },
+    {
+     "req": 1,
+     "call": 32,
+     "done": 282,
+     "value": 1,
+     "fetched": true
+    },
+    {
+     "req": 2,
+     "call": 61,
+     "done": 312,
+     "value": 2,
+     "fetched": true
+    },
+    {
+     "req": 3,
+     "call": 452,
+     "done": 452,
+     "value": 2,
+     "fetched": false
+    },
+    {
+     "req": 4,
+     "call": 801,
+     "done": 801,
+     "value": 2,
+     "fetched": false
+    },
+    {
+     "req": 5,
+     "call": 1252,
+     "done": 1504,
+     "value": 3,
+     "fetched": true
+    },
+    {
+     "req": 6,
+     "call": 1272,
+     "done": 1523,
+     "value": 4,
+     "fetched": true
+    },
+    {
+     "req": 7,
+     "call": 1292,
+     "done": 1544,
+     "value": 5,
+     "fetched": true
+    },
+    {
+     "req": 8,
+     "call": 1311,
+     "done": 1562,
+     "value": 6,
+     "fetched": true
+    },
+    {
+     "req": 9,
+     "call": 1331,
+     "done": 1581,
+     "value": 7,
+     "fetched": true
+    },
+    {
+     "req": 10,
+     "call": 1701,
+     "done": 1701,
+     "value": 7,
+     "fetched": false
+    },
+    {
+     "req": 11,
+     "call": 2051,
+     "done": 2051,
+     "value": 7,
+     "fetched": false
+    }
+   ]
+  },
+  "yasyn": {
+   "fetches": [
+    {
+     "id": 0,
+     "start": 6,
+     "end": 256
+    },
+    {
+     "id": 1,
+     "start": 1256,
+     "end": 1507
+    }
+   ],
+   "reqs": [
+    {
+     "req": 0,
+     "call": 5,
+     "done": 256,
+     "value": 0,
+     "fetched": true
+    },
+    {
+     "req": 1,
+     "call": 37,
+     "done": 257,
+     "value": 0,
+     "fetched": false
+    },
+    {
+     "req": 2,
+     "call": 64,
+     "done": 257,
+     "value": 0,
+     "fetched": false
+    },
+    {
+     "req": 3,
+     "call": 455,
+     "done": 455,
+     "value": 0,
+     "fetched": false
+    },
+    {
+     "req": 4,
+     "call": 805,
+     "done": 805,
+     "value": 0,
+     "fetched": false
+    },
+    {
+     "req": 5,
+     "call": 1256,
+     "done": 1507,
+     "value": 1,
+     "fetched": true
+    },
+    {
+     "req": 6,
+     "call": 1275,
+     "done": 1507,
+     "value": 1,
+     "fetched": false
+    },
+    {
+     "req": 7,
+     "call": 1295,
+     "done": 1507,
+     "value": 1,
+     "fetched": false
+    },
+    {
+     "req": 8,
+     "call": 1315,
+     "done": 1507,
+     "value": 1,
+     "fetched": false
+    },
+    {
+     "req": 9,
+     "call": 1335,
+     "done": 1507,
+     "value": 1,
+     "fetched": false
+    },
+    {
+     "req": 10,
+     "call": 1706,
+     "done": 1706,
+     "value": 1,
+     "fetched": false
+    },
+    {
+     "req": 11,
+     "call": 2055,
+     "done": 2055,
+     "value": 1,
+     "fetched": false
+    }
+   ],
+   "sem": [
+    {
+     "t": 5,
+     "type": "call",
+     "who": 0
+    },
+    {
+     "t": 6,
+     "type": "Acquire",
+     "who": 0,
+     "stats": {
+      "tasks": 1,
+      "running": 0
+     }
+    },
+    {
+     "t": 6,
+     "type": "Acquired",
+     "who": 0,
+     "stats": {
+      "tasks": 1,
+      "running": 1
+     }
+    },
+    {
+     "t": 6,
+     "type": "work",
+     "who": null,
+     "id": 0
+    },
+    {
+     "t": 37,
+     "type": "call",
+     "who": 1
+    },
+    {
+     "t": 38,
+     "type": "Acquire",
+     "who": 1,
+     "stats": {
+      "tasks": 2,
+      "running": 1
+     }
+    },
+    {
+     "t": 64,
+     "type": "call",
+     "who": 2
+    },
+    {
+     "t": 64,
+     "type": "Acquire",
+     "who": 2,
+     "stats": {
+      "tasks": 3,
+      "running": 1
+     }
+    },
+    {
+     "t": 256,
+     "type": "worked",
+     "who": null,
+     "id": 0
+    },
+    {
+     "t": 256,
+     "type": "return",
+     "who": 0,
+     "value": 0
+    },
+    {
+     "t": 256,
+     "type": "Release",
+     "who": 0,
+     "stats": {
+      "tasks": 2,
+      "running": 0
+     }
+    },
+    {
+     "t": 257,
+     "type": "Acquired",
+     "who": 1,
+     "stats": {
+      "tasks": 2,
+      "running": 1
+     }
+    },
+    {
+     "t": 257,
+     "type": "return",
+     "who": 1,
+     "value": 0
+    },
+    {
+     "t": 257,
+     "type": "Release",
+     "who": 1,
+     "stats": {
+      "tasks": 1,
+      "running": 0
+     }
+    },
+    {
+     "t": 257,
+     "type": "Acquired",
+     "who": 2,
+     "stats": {
+      "tasks": 1,
+      "running": 1
+     }
+    },
+    {
+     "t": 257,
+     "type": "return",
+     "who": 2,
+     "value": 0
+    },
+    {
+     "t": 257,
+     "type": "Release",
+     "who": 2,
+     "stats": {
+      "tasks": 0,
+      "running": 0
+     }
+    },
+    {
+     "t": 455,
+     "type": "call",
+     "who": 3
+    },
+    {
+     "t": 455,
+     "type": "return",
+     "who": 3,
+     "value": 0
+    },
+    {
+     "t": 805,
+     "type": "call",
+     "who": 4
+    },
+    {
+     "t": 805,
+     "type": "return",
+     "who": 4,
+     "value": 0
+    },
+    {
+     "t": 1256,
+     "type": "call",
+     "who": 5
+    },
+    {
+     "t": 1256,
+     "type": "Acquire",
+     "who": 5,
+     "stats": {
+      "tasks": 1,
+      "running": 0
+     }
+    },
+    {
+     "t": 1256,
+     "type": "Acquired",
+     "who": 5,
+     "stats": {
+      "tasks": 1,
+      "running": 1
+     }
+    },
+    {
+     "t": 1256,
+     "type": "work",
+     "who": null,
+     "id": 1
+    },
+    {
+     "t": 1275,
+     "type": "call",
+     "who": 6
+    },
+    {
+     "t": 1275,
+     "type": "Acquire",
+     "who": 6,
+     "stats": {
+      "tasks": 2,
+      "running": 1
+     }
+    },
+    {
+     "t": 1295,
+     "type": "call",
+     "who": 7
+    },
+    {
+     "t": 1295,
+     "type": "Acquire",
+     "who": 7,
+     "stats": {
+      "tasks": 3,
+      "running": 1
+     }
+    },
+    {
+     "t": 1315,
+     "type": "call",
+     "who": 8
+    },
+    {
+     "t": 1315,
+     "type": "Acquire",
+     "who": 8,
+     "stats": {
+      "tasks": 4,
+      "running": 1
+     }
+    },
+    {
+     "t": 1335,
+     "type": "call",
+     "who": 9
+    },
+    {
+     "t": 1335,
+     "type": "Acquire",
+     "who": 9,
+     "stats": {
+      "tasks": 5,
+      "running": 1
+     }
+    },
+    {
+     "t": 1507,
+     "type": "worked",
+     "who": null,
+     "id": 1
+    },
+    {
+     "t": 1507,
+     "type": "return",
+     "who": 5,
+     "value": 1
+    },
+    {
+     "t": 1507,
+     "type": "Release",
+     "who": 5,
+     "stats": {
+      "tasks": 4,
+      "running": 0
+     }
+    },
+    {
+     "t": 1507,
+     "type": "Acquired",
+     "who": 6,
+     "stats": {
+      "tasks": 4,
+      "running": 1
+     }
+    },
+    {
+     "t": 1507,
+     "type": "return",
+     "who": 6,
+     "value": 1
+    },
+    {
+     "t": 1507,
+     "type": "Release",
+     "who": 6,
+     "stats": {
+      "tasks": 3,
+      "running": 0
+     }
+    },
+    {
+     "t": 1507,
+     "type": "Acquired",
+     "who": 7,
+     "stats": {
+      "tasks": 3,
+      "running": 1
+     }
+    },
+    {
+     "t": 1507,
+     "type": "return",
+     "who": 7,
+     "value": 1
+    },
+    {
+     "t": 1507,
+     "type": "Release",
+     "who": 7,
+     "stats": {
+      "tasks": 2,
+      "running": 0
+     }
+    },
+    {
+     "t": 1507,
+     "type": "Acquired",
+     "who": 8,
+     "stats": {
+      "tasks": 2,
+      "running": 1
+     }
+    },
+    {
+     "t": 1507,
+     "type": "return",
+     "who": 8,
+     "value": 1
+    },
+    {
+     "t": 1507,
+     "type": "Release",
+     "who": 8,
+     "stats": {
+      "tasks": 1,
+      "running": 0
+     }
+    },
+    {
+     "t": 1507,
+     "type": "Acquired",
+     "who": 9,
+     "stats": {
+      "tasks": 1,
+      "running": 1
+     }
+    },
+    {
+     "t": 1507,
+     "type": "return",
+     "who": 9,
+     "value": 1
+    },
+    {
+     "t": 1507,
+     "type": "Release",
+     "who": 9,
+     "stats": {
+      "tasks": 0,
+      "running": 0
+     }
+    },
+    {
+     "t": 1706,
+     "type": "call",
+     "who": 10
+    },
+    {
+     "t": 1706,
+     "type": "return",
+     "who": 10,
+     "value": 1
+    },
+    {
+     "t": 2055,
+     "type": "call",
+     "who": 11
+    },
+    {
+     "t": 2055,
+     "type": "return",
+     "who": 11,
+     "value": 1
+    }
+   ]
+  }
+ },
+ "tasks": {
+  "durs": [
+   180,
+   120,
+   260,
+   140,
+   200,
+   160,
+   220,
+   110,
+   240,
+   150
+  ],
+  "fail": 6,
+  "inFlight": 3,
+  "inExecution": 2,
+  "naive": {
+   "rows": [
+    {
+     "task": 0,
+     "ms": 180,
+     "pulled": 0,
+     "start": 0,
+     "end": 182
+    },
+    {
+     "task": 1,
+     "ms": 120,
+     "pulled": 0,
+     "start": 0,
+     "end": 121
+    },
+    {
+     "task": 2,
+     "ms": 260,
+     "pulled": 0,
+     "start": 0,
+     "end": 260
+    },
+    {
+     "task": 3,
+     "ms": 140,
+     "pulled": 0,
+     "start": 0,
+     "end": 141
+    },
+    {
+     "task": 4,
+     "ms": 200,
+     "pulled": 0,
+     "start": 0,
+     "end": 200
+    },
+    {
+     "task": 5,
+     "ms": 160,
+     "pulled": 0,
+     "start": 0,
+     "end": 161
+    },
+    {
+     "task": 6,
+     "ms": 220,
+     "pulled": 0,
+     "start": 0,
+     "end": 221,
+     "failed": true
+    },
+    {
+     "task": 7,
+     "ms": 110,
+     "pulled": 0,
+     "start": 0,
+     "end": 112
+    },
+    {
+     "task": 8,
+     "ms": 240,
+     "pulled": 0,
+     "start": 0,
+     "end": 241
+    },
+    {
+     "task": 9,
+     "ms": 150,
+     "pulled": 0,
+     "start": 0,
+     "end": 151
+    }
+   ],
+   "rejected": 221,
+   "error": "task 6 failed",
+   "peakExecution": 10,
+   "peakInFlight": 10
+  },
+  "yasyn": {
+   "rows": [
+    {
+     "task": 0,
+     "ms": 180,
+     "pulled": 0,
+     "start": 1,
+     "end": 181
+    },
+    {
+     "task": 1,
+     "ms": 120,
+     "pulled": 1,
+     "start": 1,
+     "end": 122
+    },
+    {
+     "task": 2,
+     "ms": 260,
+     "pulled": 1,
+     "start": 122,
+     "end": 383
+    },
+    {
+     "task": 3,
+     "ms": 140,
+     "pulled": 122,
+     "start": 181,
+     "end": 321
+    },
+    {
+     "task": 4,
+     "ms": 200,
+     "pulled": 181,
+     "start": 322,
+     "end": 523
+    },
+    {
+     "task": 5,
+     "ms": 160,
+     "pulled": 322,
+     "start": 383,
+     "end": 543
+    },
+    {
+     "task": 6,
+     "ms": 220,
+     "pulled": 383,
+     "start": 523,
+     "end": 746,
+     "failed": true
+    },
+    {
+     "task": 7,
+     "ms": 110,
+     "pulled": 523,
+     "start": 543,
+     "end": 654
+    },
+    {
+     "task": 8,
+     "ms": 240,
+     "pulled": 543,
+     "start": 654,
+     "end": 895
+    },
+    {
+     "task": 9,
+     "ms": 150,
+     "pulled": 655,
+     "start": 746,
+     "end": 897
+    }
+   ],
+   "resolved": 897,
+   "errors": [
+    {
+     "at": 746,
+     "message": "task 6 failed"
+    }
+   ],
+   "sem": [
+    {
+     "t": 0,
+     "type": "call",
+     "who": 0
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 0,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquired",
+     "who": 0,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 0,
+     "sem": "inExecution"
+    },
+    {
+     "t": 1,
+     "type": "Acquired",
+     "who": 0,
+     "sem": "inExecution"
+    },
+    {
+     "t": 1,
+     "type": "work",
+     "who": 0
+    },
+    {
+     "t": 1,
+     "type": "call",
+     "who": 1
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 1,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquired",
+     "who": 1,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 1,
+     "sem": "inExecution"
+    },
+    {
+     "t": 1,
+     "type": "Acquired",
+     "who": 1,
+     "sem": "inExecution"
+    },
+    {
+     "t": 1,
+     "type": "work",
+     "who": 1
+    },
+    {
+     "t": 1,
+     "type": "call",
+     "who": 2
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 2,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquired",
+     "who": 2,
+     "sem": "inFlight"
+    },
+    {
+     "t": 1,
+     "type": "Acquire",
+     "who": 2,
+     "sem": "inExecution"
+    },
+    {
+     "t": 122,
+     "type": "worked",
+     "who": 1
+    },
+    {
+     "t": 122,
+     "type": "Release",
+     "who": 1,
+     "sem": "inExecution"
+    },
+    {
+     "t": 122,
+     "type": "Release",
+     "who": 1,
+     "sem": "inFlight"
+    },
+    {
+     "t": 122,
+     "type": "Acquired",
+     "who": 2,
+     "sem": "inExecution"
+    },
+    {
+     "t": 122,
+     "type": "work",
+     "who": 2
+    },
+    {
+     "t": 122,
+     "type": "call",
+     "who": 3
+    },
+    {
+     "t": 122,
+     "type": "Acquire",
+     "who": 3,
+     "sem": "inFlight"
+    },
+    {
+     "t": 122,
+     "type": "Acquired",
+     "who": 3,
+     "sem": "inFlight"
+    },
+    {
+     "t": 122,
+     "type": "Acquire",
+     "who": 3,
+     "sem": "inExecution"
+    },
+    {
+     "t": 181,
+     "type": "worked",
+     "who": 0
+    },
+    {
+     "t": 181,
+     "type": "Release",
+     "who": 0,
+     "sem": "inExecution"
+    },
+    {
+     "t": 181,
+     "type": "Release",
+     "who": 0,
+     "sem": "inFlight"
+    },
+    {
+     "t": 181,
+     "type": "Acquired",
+     "who": 3,
+     "sem": "inExecution"
+    },
+    {
+     "t": 181,
+     "type": "work",
+     "who": 3
+    },
+    {
+     "t": 181,
+     "type": "call",
+     "who": 4
+    },
+    {
+     "t": 181,
+     "type": "Acquire",
+     "who": 4,
+     "sem": "inFlight"
+    },
+    {
+     "t": 181,
+     "type": "Acquired",
+     "who": 4,
+     "sem": "inFlight"
+    },
+    {
+     "t": 181,
+     "type": "Acquire",
+     "who": 4,
+     "sem": "inExecution"
+    },
+    {
+     "t": 321,
+     "type": "worked",
+     "who": 3
+    },
+    {
+     "t": 321,
+     "type": "Release",
+     "who": 3,
+     "sem": "inExecution"
+    },
+    {
+     "t": 321,
+     "type": "Release",
+     "who": 3,
+     "sem": "inFlight"
+    },
+    {
+     "t": 321,
+     "type": "Acquired",
+     "who": 4,
+     "sem": "inExecution"
+    },
+    {
+     "t": 322,
+     "type": "work",
+     "who": 4
+    },
+    {
+     "t": 322,
+     "type": "call",
+     "who": 5
+    },
+    {
+     "t": 322,
+     "type": "Acquire",
+     "who": 5,
+     "sem": "inFlight"
+    },
+    {
+     "t": 322,
+     "type": "Acquired",
+     "who": 5,
+     "sem": "inFlight"
+    },
+    {
+     "t": 322,
+     "type": "Acquire",
+     "who": 5,
+     "sem": "inExecution"
+    },
+    {
+     "t": 383,
+     "type": "worked",
+     "who": 2
+    },
+    {
+     "t": 383,
+     "type": "Release",
+     "who": 2,
+     "sem": "inExecution"
+    },
+    {
+     "t": 383,
+     "type": "Release",
+     "who": 2,
+     "sem": "inFlight"
+    },
+    {
+     "t": 383,
+     "type": "Acquired",
+     "who": 5,
+     "sem": "inExecution"
+    },
+    {
+     "t": 383,
+     "type": "work",
+     "who": 5
+    },
+    {
+     "t": 383,
+     "type": "call",
+     "who": 6
+    },
+    {
+     "t": 383,
+     "type": "Acquire",
+     "who": 6,
+     "sem": "inFlight"
+    },
+    {
+     "t": 383,
+     "type": "Acquired",
+     "who": 6,
+     "sem": "inFlight"
+    },
+    {
+     "t": 383,
+     "type": "Acquire",
+     "who": 6,
+     "sem": "inExecution"
+    },
+    {
+     "t": 523,
+     "type": "worked",
+     "who": 4
+    },
+    {
+     "t": 523,
+     "type": "Release",
+     "who": 4,
+     "sem": "inExecution"
+    },
+    {
+     "t": 523,
+     "type": "Release",
+     "who": 4,
+     "sem": "inFlight"
+    },
+    {
+     "t": 523,
+     "type": "Acquired",
+     "who": 6,
+     "sem": "inExecution"
+    },
+    {
+     "t": 523,
+     "type": "work",
+     "who": 6
+    },
+    {
+     "t": 523,
+     "type": "call",
+     "who": 7
+    },
+    {
+     "t": 523,
+     "type": "Acquire",
+     "who": 7,
+     "sem": "inFlight"
+    },
+    {
+     "t": 523,
+     "type": "Acquired",
+     "who": 7,
+     "sem": "inFlight"
+    },
+    {
+     "t": 523,
+     "type": "Acquire",
+     "who": 7,
+     "sem": "inExecution"
+    },
+    {
+     "t": 543,
+     "type": "worked",
+     "who": 5
+    },
+    {
+     "t": 543,
+     "type": "Release",
+     "who": 5,
+     "sem": "inExecution"
+    },
+    {
+     "t": 543,
+     "type": "Release",
+     "who": 5,
+     "sem": "inFlight"
+    },
+    {
+     "t": 543,
+     "type": "Acquired",
+     "who": 7,
+     "sem": "inExecution"
+    },
+    {
+     "t": 543,
+     "type": "work",
+     "who": 7
+    },
+    {
+     "t": 543,
+     "type": "call",
+     "who": 8
+    },
+    {
+     "t": 543,
+     "type": "Acquire",
+     "who": 8,
+     "sem": "inFlight"
+    },
+    {
+     "t": 543,
+     "type": "Acquired",
+     "who": 8,
+     "sem": "inFlight"
+    },
+    {
+     "t": 543,
+     "type": "Acquire",
+     "who": 8,
+     "sem": "inExecution"
+    },
+    {
+     "t": 654,
+     "type": "worked",
+     "who": 7
+    },
+    {
+     "t": 654,
+     "type": "Release",
+     "who": 7,
+     "sem": "inExecution"
+    },
+    {
+     "t": 654,
+     "type": "Release",
+     "who": 7,
+     "sem": "inFlight"
+    },
+    {
+     "t": 654,
+     "type": "Acquired",
+     "who": 8,
+     "sem": "inExecution"
+    },
+    {
+     "t": 654,
+     "type": "work",
+     "who": 8
+    },
+    {
+     "t": 655,
+     "type": "call",
+     "who": 9
+    },
+    {
+     "t": 655,
+     "type": "Acquire",
+     "who": 9,
+     "sem": "inFlight"
+    },
+    {
+     "t": 655,
+     "type": "Acquired",
+     "who": 9,
+     "sem": "inFlight"
+    },
+    {
+     "t": 655,
+     "type": "Acquire",
+     "who": 9,
+     "sem": "inExecution"
+    },
+    {
+     "t": 746,
+     "type": "worked",
+     "who": 6,
+     "failed": true
+    },
+    {
+     "t": 746,
+     "type": "Release",
+     "who": 6,
+     "sem": "inExecution"
+    },
+    {
+     "t": 746,
+     "type": "Release",
+     "who": 6,
+     "sem": "inFlight"
+    },
+    {
+     "t": 746,
+     "type": "Acquired",
+     "who": 9,
+     "sem": "inExecution"
+    },
+    {
+     "t": 746,
+     "type": "work",
+     "who": 9
+    },
+    {
+     "t": 895,
+     "type": "worked",
+     "who": 8
+    },
+    {
+     "t": 895,
+     "type": "Release",
+     "who": 8,
+     "sem": "inExecution"
+    },
+    {
+     "t": 895,
+     "type": "Release",
+     "who": 8,
+     "sem": "inFlight"
+    },
+    {
+     "t": 897,
+     "type": "worked",
+     "who": 9
+    },
+    {
+     "t": 897,
+     "type": "Release",
+     "who": 9,
+     "sem": "inExecution"
+    },
+    {
+     "t": 897,
+     "type": "Release",
+     "who": 9,
+     "sem": "inFlight"
+    }
+   ],
+   "peakExecution": 2,
+   "peakInFlight": 3
+  }
+ }
+}
