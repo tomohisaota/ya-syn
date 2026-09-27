@@ -3,7 +3,7 @@
 // 三つの場面それぞれで「素朴に書いた実装」と「ya-syn」を同じ呼び出し方で動かし、
 // いつ呼ばれ・いつ factory / fetch / task が走り・いつ返ったかを ms で残す。
 // reel.html はこの記録を読んで描くだけで、動きを作らない。
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CoreSemaphore, LazyInitializer, SynchronizerProvider } from '../dist/index.mjs';
@@ -133,10 +133,12 @@ async function cache(kind) {
   return kind === 'naive' ? { fetches, reqs } : { fetches, reqs, sem };
 }
 
-// ---- 03 TaskExecutor：10 件の仕事。7 件目は失敗する ----
+// ---- 03 TaskExecutor：10 件の仕事（長さはばらばら）。7 件目は失敗する。どちらも並列 3 ----
 const DURS = [180, 120, 260, 140, 200, 160, 220, 110, 240, 150];
 const FAIL = 6;
-const IN_FLIGHT = 3, IN_EXECUTION = 2;
+const PARALLEL = 3;
+// ya-syn は実行を 3 本に絞り、generator からは 1 本先に読んでおく（保持 4）
+const IN_FLIGHT = 4, IN_EXECUTION = PARALLEL;
 
 async function tasks(kind) {
   const now = clock();
@@ -152,17 +154,20 @@ async function tasks(kind) {
   };
   const result = {};
   if (kind === 'naive') {
-    // よくある書き方：全部いっぺんに投げて Promise.all で待つ
-    for (const r of rows) r.pulled = 0;
-    try {
-      await Promise.all(rows.map((r) => run(r.task)));
-      result.resolved = now();
-    } catch (e) {
-      result.rejected = now();
-      result.error = e.message;
+    // よくある書き方：並列 3 に絞るため、3 本ずつ区切って Promise.all で待つ。
+    // 失敗の扱いは ya-syn（onTaskError）と揃える：1 本ずつ受けて報告し、ループは止めない。
+    const errors = [];
+    result.batches = [];
+    for (let i = 0; i < rows.length; i += PARALLEL) {
+      const chunk = rows.slice(i, i + PARALLEL);
+      const b = { from: i, start: now() };
+      for (const r of chunk) r.pulled = b.start;
+      await Promise.all(chunk.map((r) => run(r.task).catch((e) => errors.push({ at: now(), message: e.message }))));
+      b.end = now();
+      result.batches.push(b);
     }
-    // reject のあとも、残りの仕事は裏で走り続ける。その終わりまで記録する。
-    await sleep(Math.max(...DURS) + 50);
+    result.resolved = now();
+    result.errors = errors;
   } else {
     const sp = new SynchronizerProvider();
     const errors = [];
@@ -211,10 +216,11 @@ const peak = (spans) => {
 
 const out = {
   recordedAt: new Date().toISOString(),
+  version: JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version,
   node: process.version,
   lazy: { callers: CALLERS, connectMs: CONNECT_MS, naive: await lazy('naive'), yasyn: await lazy('yasyn'), cycle: await lazyCycle() },
   cache: { ttl: TTL, fetchMs: FETCH_MS, span: CACHE_SPAN, requests: REQUESTS, naive: await cache('naive'), yasyn: await cache('yasyn') },
-  tasks: { durs: DURS, fail: FAIL, inFlight: IN_FLIGHT, inExecution: IN_EXECUTION, naive: await tasks('naive'), yasyn: await tasks('yasyn') },
+  tasks: { durs: DURS, fail: FAIL, parallel: PARALLEL, inFlight: IN_FLIGHT, inExecution: IN_EXECUTION, naive: await tasks('naive'), yasyn: await tasks('yasyn') },
 };
 // ya-syn の保持数（generator から取り出して、まだ終わっていない本数）
 for (const k of ['naive', 'yasyn']) {

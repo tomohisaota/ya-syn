@@ -1,5 +1,6 @@
 {
- "recordedAt": "2026-09-27T00:19:38.071Z",
+ "recordedAt": "2026-09-27T00:49:04.444Z",
+ "version": "1.7.0",
  "node": "v24.3.0",
  "lazy": {
   "callers": [
@@ -15,58 +16,58 @@
     {
      "id": 0,
      "start": 2,
-     "end": 404
+     "end": 403
     },
     {
      "id": 1,
-     "start": 41,
-     "end": 443
+     "start": 42,
+     "end": 442
     },
     {
      "id": 2,
-     "start": 81,
+     "start": 82,
      "end": 483
     },
     {
      "id": 3,
      "start": 121,
-     "end": 522
+     "end": 523
     },
     {
      "id": 4,
      "start": 161,
-     "end": 562
+     "end": 563
     }
    ],
    "calls": [
     {
      "caller": 0,
      "call": 2,
-     "done": 404,
+     "done": 403,
      "value": 0
     },
     {
      "caller": 1,
-     "call": 41,
-     "done": 443,
+     "call": 42,
+     "done": 442,
      "value": 1
     },
     {
      "caller": 2,
-     "call": 81,
-     "done": 483,
+     "call": 82,
+     "done": 484,
      "value": 2
     },
     {
      "caller": 3,
      "call": 121,
-     "done": 522,
+     "done": 523,
      "value": 3
     },
     {
      "caller": 4,
      "call": 161,
-     "done": 562,
+     "done": 563,
      "value": 4
     }
    ]
@@ -75,76 +76,76 @@
    "runs": [
     {
      "id": 0,
-     "start": 7,
-     "end": 408
+     "start": 3,
+     "end": 404
     }
    ],
    "calls": [
     {
      "caller": 0,
-     "call": 5,
-     "done": 408,
+     "call": 1,
+     "done": 405,
      "value": 0
     },
     {
      "caller": 1,
-     "call": 42,
-     "done": 408,
+     "call": 41,
+     "done": 405,
      "value": 0
     },
     {
      "caller": 2,
-     "call": 81,
-     "done": 408,
+     "call": 82,
+     "done": 405,
      "value": 0
     },
     {
      "caller": 3,
-     "call": 122,
-     "done": 408,
+     "call": 135,
+     "done": 405,
      "value": 0
     },
     {
      "caller": 4,
      "call": 161,
-     "done": 408,
+     "done": 407,
      "value": 0
     }
    ],
    "sem": [
     {
-     "t": 5,
+     "t": 1,
      "type": "call",
      "who": 0
     },
     {
-     "t": 7,
+     "t": 3,
      "type": "Acquire",
      "who": 0
     },
     {
-     "t": 7,
+     "t": 3,
      "type": "Acquired",
      "who": 0
     },
     {
-     "t": 7,
+     "t": 3,
      "type": "work",
      "who": null,
      "id": 0
     },
     {
-     "t": 42,
+     "t": 41,
      "type": "call",
      "who": 1
     },
     {
-     "t": 42,
+     "t": 41,
      "type": "Acquire",
      "who": 1
     },
     {
-     "t": 81,
+     "t": 82,
      "type": "call",
      "who": 2
     },
@@ -154,12 +155,12 @@
      "who": 2
     },
     {
-     "t": 122,
+     "t": 135,
      "type": "call",
      "who": 3
     },
     {
-     "t": 122,
+     "t": 135,
      "type": "Acquire",
      "who": 3
     },
@@ -174,82 +175,82 @@
      "who": 4
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "worked",
      "who": null,
      "id": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Release",
      "who": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Acquired",
      "who": 1
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "return",
      "who": 0,
      "value": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Release",
      "who": 1
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Acquired",
      "who": 2
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "return",
      "who": 1,
      "value": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Release",
      "who": 2
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Acquired",
      "who": 3
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "return",
      "who": 2,
      "value": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Release",
      "who": 3
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Acquired",
      "who": 4
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "return",
      "who": 3,
      "value": 0
     },
     {
-     "t": 408,
+     "t": 405,
      "type": "Release",
      "who": 4
     },
     {
-     "t": 408,
+     "t": 407,
      "type": "return",
      "who": 4,
      "value": 0
@@ -293,40 +294,40 @@
     },
     {
      "id": 2,
-     "start": 61,
-     "end": 312
+     "start": 63,
+     "end": 315
     },
     {
      "id": 3,
-     "start": 1252,
-     "end": 1504
+     "start": 1251,
+     "end": 1501
     },
     {
      "id": 4,
-     "start": 1272,
-     "end": 1523
+     "start": 1273,
+     "end": 1524
     },
     {
      "id": 5,
-     "start": 1292,
-     "end": 1544
+     "start": 1291,
+     "end": 1542
     },
     {
      "id": 6,
-     "start": 1311,
-     "end": 1562
+     "start": 1310,
+     "end": 1561
     },
     {
      "id": 7,
      "start": 1331,
-     "end": 1581
+     "end": 1583
     }
    ],
    "reqs": [
     {
      "req": 0,
      "call": 1,
-     "done": 253,
+     "done": 252,
      "value": 0,
      "fetched": true
     },
@@ -339,15 +340,15 @@
     },
     {
      "req": 2,
-     "call": 61,
-     "done": 312,
+     "call": 63,
+     "done": 315,
      "value": 2,
      "fetched": true
     },
     {
      "req": 3,
-     "call": 452,
-     "done": 452,
+     "call": 451,
+     "done": 451,
      "value": 2,
      "fetched": false
     },
@@ -360,50 +361,50 @@
     },
     {
      "req": 5,
-     "call": 1252,
-     "done": 1504,
+     "call": 1251,
+     "done": 1501,
      "value": 3,
      "fetched": true
     },
     {
      "req": 6,
-     "call": 1272,
-     "done": 1523,
+     "call": 1273,
+     "done": 1524,
      "value": 4,
      "fetched": true
     },
     {
      "req": 7,
-     "call": 1292,
-     "done": 1544,
+     "call": 1291,
+     "done": 1542,
      "value": 5,
      "fetched": true
     },
     {
      "req": 8,
-     "call": 1311,
-     "done": 1562,
+     "call": 1310,
+     "done": 1561,
      "value": 6,
      "fetched": true
     },
     {
      "req": 9,
      "call": 1331,
-     "done": 1581,
+     "done": 1583,
      "value": 7,
      "fetched": true
     },
     {
      "req": 10,
-     "call": 1701,
-     "done": 1701,
+     "call": 1702,
+     "done": 1702,
      "value": 7,
      "fetched": false
     },
     {
      "req": 11,
-     "call": 2051,
-     "done": 2051,
+     "call": 2050,
+     "done": 2050,
      "value": 7,
      "fetched": false
     }
@@ -413,109 +414,109 @@
    "fetches": [
     {
      "id": 0,
-     "start": 6,
-     "end": 256
+     "start": 13,
+     "end": 264
     },
     {
      "id": 1,
-     "start": 1256,
-     "end": 1507
+     "start": 1261,
+     "end": 1512
     }
    ],
    "reqs": [
     {
      "req": 0,
-     "call": 5,
-     "done": 256,
+     "call": 11,
+     "done": 265,
      "value": 0,
      "fetched": true
     },
     {
      "req": 1,
-     "call": 37,
-     "done": 257,
+     "call": 41,
+     "done": 265,
      "value": 0,
      "fetched": false
     },
     {
      "req": 2,
-     "call": 64,
-     "done": 257,
+     "call": 71,
+     "done": 265,
      "value": 0,
      "fetched": false
     },
     {
      "req": 3,
-     "call": 455,
-     "done": 455,
+     "call": 461,
+     "done": 461,
      "value": 0,
      "fetched": false
     },
     {
      "req": 4,
-     "call": 805,
-     "done": 805,
+     "call": 811,
+     "done": 811,
      "value": 0,
      "fetched": false
     },
     {
      "req": 5,
-     "call": 1256,
-     "done": 1507,
+     "call": 1261,
+     "done": 1512,
      "value": 1,
      "fetched": true
     },
     {
      "req": 6,
-     "call": 1275,
-     "done": 1507,
+     "call": 1281,
+     "done": 1512,
      "value": 1,
      "fetched": false
     },
     {
      "req": 7,
-     "call": 1295,
-     "done": 1507,
+     "call": 1302,
+     "done": 1513,
      "value": 1,
      "fetched": false
     },
     {
      "req": 8,
-     "call": 1315,
-     "done": 1507,
+     "call": 1321,
+     "done": 1513,
      "value": 1,
      "fetched": false
     },
     {
      "req": 9,
-     "call": 1335,
-     "done": 1507,
+     "call": 1341,
+     "done": 1513,
      "value": 1,
      "fetched": false
     },
     {
      "req": 10,
-     "call": 1706,
-     "done": 1706,
+     "call": 1710,
+     "done": 1711,
      "value": 1,
      "fetched": false
     },
     {
      "req": 11,
-     "call": 2055,
-     "done": 2055,
+     "call": 2061,
+     "done": 2061,
      "value": 1,
      "fetched": false
     }
    ],
    "sem": [
     {
-     "t": 5,
+     "t": 12,
      "type": "call",
      "who": 0
     },
     {
-     "t": 6,
+     "t": 12,
      "type": "Acquire",
      "who": 0,
      "stats": {
@@ -524,7 +525,7 @@
      }
     },
     {
-     "t": 6,
+     "t": 12,
      "type": "Acquired",
      "who": 0,
      "stats": {
@@ -533,18 +534,18 @@
      }
     },
     {
-     "t": 6,
+     "t": 13,
      "type": "work",
      "who": null,
      "id": 0
     },
     {
-     "t": 37,
+     "t": 41,
      "type": "call",
      "who": 1
     },
     {
-     "t": 38,
+     "t": 41,
      "type": "Acquire",
      "who": 1,
      "stats": {
@@ -553,12 +554,12 @@
      }
     },
     {
-     "t": 64,
+     "t": 71,
      "type": "call",
      "who": 2
     },
     {
-     "t": 64,
+     "t": 72,
      "type": "Acquire",
      "who": 2,
      "stats": {
@@ -567,19 +568,19 @@
      }
     },
     {
-     "t": 256,
+     "t": 264,
      "type": "worked",
      "who": null,
      "id": 0
     },
     {
-     "t": 256,
+     "t": 265,
      "type": "return",
      "who": 0,
      "value": 0
     },
     {
-     "t": 256,
+     "t": 265,
      "type": "Release",
      "who": 0,
      "stats": {
@@ -588,7 +589,7 @@
      }
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "Acquired",
      "who": 1,
      "stats": {
@@ -597,13 +598,13 @@
      }
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "return",
      "who": 1,
      "value": 0
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "Release",
      "who": 1,
      "stats": {
@@ -612,7 +613,7 @@
      }
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "Acquired",
      "who": 2,
      "stats": {
@@ -621,13 +622,13 @@
      }
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "return",
      "who": 2,
      "value": 0
     },
     {
-     "t": 257,
+     "t": 265,
      "type": "Release",
      "who": 2,
      "stats": {
@@ -636,34 +637,34 @@
      }
     },
     {
-     "t": 455,
+     "t": 461,
      "type": "call",
      "who": 3
     },
     {
-     "t": 455,
+     "t": 461,
      "type": "return",
      "who": 3,
      "value": 0
     },
     {
-     "t": 805,
+     "t": 811,
      "type": "call",
      "who": 4
     },
     {
-     "t": 805,
+     "t": 811,
      "type": "return",
      "who": 4,
      "value": 0
     },
     {
-     "t": 1256,
+     "t": 1261,
      "type": "call",
      "who": 5
     },
     {
-     "t": 1256,
+     "t": 1261,
      "type": "Acquire",
      "who": 5,
      "stats": {
@@ -672,7 +673,7 @@
      }
     },
     {
-     "t": 1256,
+     "t": 1261,
      "type": "Acquired",
      "who": 5,
      "stats": {
@@ -681,18 +682,18 @@
      }
     },
     {
-     "t": 1256,
+     "t": 1261,
      "type": "work",
      "who": null,
      "id": 1
     },
     {
-     "t": 1275,
+     "t": 1281,
      "type": "call",
      "who": 6
     },
     {
-     "t": 1275,
+     "t": 1281,
      "type": "Acquire",
      "who": 6,
      "stats": {
@@ -701,12 +702,12 @@
      }
     },
     {
-     "t": 1295,
+     "t": 1302,
      "type": "call",
      "who": 7
     },
     {
-     "t": 1295,
+     "t": 1302,
      "type": "Acquire",
      "who": 7,
      "stats": {
@@ -715,12 +716,12 @@
      }
     },
     {
-     "t": 1315,
+     "t": 1321,
      "type": "call",
      "who": 8
     },
     {
-     "t": 1315,
+     "t": 1321,
      "type": "Acquire",
      "who": 8,
      "stats": {
@@ -729,12 +730,12 @@
      }
     },
     {
-     "t": 1335,
+     "t": 1341,
      "type": "call",
      "who": 9
     },
     {
-     "t": 1335,
+     "t": 1342,
      "type": "Acquire",
      "who": 9,
      "stats": {
@@ -743,19 +744,19 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "worked",
      "who": null,
      "id": 1
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "return",
      "who": 5,
      "value": 1
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "Release",
      "who": 5,
      "stats": {
@@ -764,7 +765,7 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "Acquired",
      "who": 6,
      "stats": {
@@ -773,13 +774,13 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "return",
      "who": 6,
      "value": 1
     },
     {
-     "t": 1507,
+     "t": 1512,
      "type": "Release",
      "who": 6,
      "stats": {
@@ -788,7 +789,7 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Acquired",
      "who": 7,
      "stats": {
@@ -797,13 +798,13 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "return",
      "who": 7,
      "value": 1
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Release",
      "who": 7,
      "stats": {
@@ -812,7 +813,7 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Acquired",
      "who": 8,
      "stats": {
@@ -821,13 +822,13 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "return",
      "who": 8,
      "value": 1
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Release",
      "who": 8,
      "stats": {
@@ -836,7 +837,7 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Acquired",
      "who": 9,
      "stats": {
@@ -845,13 +846,13 @@
      }
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "return",
      "who": 9,
      "value": 1
     },
     {
-     "t": 1507,
+     "t": 1513,
      "type": "Release",
      "who": 9,
      "stats": {
@@ -860,23 +861,23 @@
      }
     },
     {
-     "t": 1706,
+     "t": 1710,
      "type": "call",
      "who": 10
     },
     {
-     "t": 1706,
+     "t": 1711,
      "type": "return",
      "who": 10,
      "value": 1
     },
     {
-     "t": 2055,
+     "t": 2061,
      "type": "call",
      "who": 11
     },
     {
-     "t": 2055,
+     "t": 2061,
      "type": "return",
      "who": 11,
      "value": 1
@@ -898,8 +899,9 @@
    150
   ],
   "fail": 6,
-  "inFlight": 3,
-  "inExecution": 2,
+  "parallel": 3,
+  "inFlight": 4,
+  "inExecution": 3,
   "naive": {
    "rows": [
     {
@@ -907,674 +909,701 @@
      "ms": 180,
      "pulled": 0,
      "start": 0,
-     "end": 182
+     "end": 181
     },
     {
      "task": 1,
      "ms": 120,
      "pulled": 0,
      "start": 0,
-     "end": 121
+     "end": 122
     },
     {
      "task": 2,
      "ms": 260,
      "pulled": 0,
      "start": 0,
-     "end": 260
+     "end": 261
     },
     {
      "task": 3,
      "ms": 140,
-     "pulled": 0,
-     "start": 0,
-     "end": 141
+     "pulled": 261,
+     "start": 261,
+     "end": 402
     },
     {
      "task": 4,
      "ms": 200,
-     "pulled": 0,
-     "start": 0,
-     "end": 200
+     "pulled": 261,
+     "start": 261,
+     "end": 462
     },
     {
      "task": 5,
      "ms": 160,
-     "pulled": 0,
-     "start": 0,
-     "end": 161
+     "pulled": 261,
+     "start": 261,
+     "end": 422
     },
     {
      "task": 6,
      "ms": 220,
-     "pulled": 0,
-     "start": 0,
-     "end": 221,
+     "pulled": 462,
+     "start": 462,
+     "end": 683,
      "failed": true
     },
     {
      "task": 7,
      "ms": 110,
-     "pulled": 0,
-     "start": 0,
-     "end": 112
+     "pulled": 462,
+     "start": 462,
+     "end": 574
     },
     {
      "task": 8,
      "ms": 240,
-     "pulled": 0,
-     "start": 0,
-     "end": 241
+     "pulled": 462,
+     "start": 462,
+     "end": 703
     },
     {
      "task": 9,
      "ms": 150,
-     "pulled": 0,
-     "start": 0,
-     "end": 151
+     "pulled": 704,
+     "start": 704,
+     "end": 856
     }
    ],
-   "rejected": 221,
-   "error": "task 6 failed",
-   "peakExecution": 10,
-   "peakInFlight": 10
+   "batches": [
+    {
+     "from": 0,
+     "start": 0,
+     "end": 261
+    },
+    {
+     "from": 3,
+     "start": 261,
+     "end": 462
+    },
+    {
+     "from": 6,
+     "start": 462,
+     "end": 704
+    },
+    {
+     "from": 9,
+     "start": 704,
+     "end": 856
+    }
+   ],
+   "resolved": 856,
+   "errors": [
+    {
+     "at": 683,
+     "message": "task 6 failed"
+    }
+   ],
+   "peakExecution": 3,
+   "peakInFlight": 3
   },
   "yasyn": {
    "rows": [
     {
      "task": 0,
      "ms": 180,
-     "pulled": 0,
-     "start": 1,
-     "end": 181
+     "pulled": 4,
+     "start": 5,
+     "end": 187
     },
     {
      "task": 1,
      "ms": 120,
-     "pulled": 1,
-     "start": 1,
-     "end": 122
+     "pulled": 5,
+     "start": 5,
+     "end": 134
     },
     {
      "task": 2,
      "ms": 260,
-     "pulled": 1,
-     "start": 122,
-     "end": 383
+     "pulled": 5,
+     "start": 5,
+     "end": 265
     },
     {
      "task": 3,
      "ms": 140,
-     "pulled": 122,
-     "start": 181,
-     "end": 321
+     "pulled": 5,
+     "start": 134,
+     "end": 276
     },
     {
      "task": 4,
      "ms": 200,
-     "pulled": 181,
-     "start": 322,
-     "end": 523
+     "pulled": 135,
+     "start": 187,
+     "end": 388
     },
     {
      "task": 5,
      "ms": 160,
-     "pulled": 322,
-     "start": 383,
-     "end": 543
+     "pulled": 187,
+     "start": 265,
+     "end": 427
     },
     {
      "task": 6,
      "ms": 220,
-     "pulled": 383,
-     "start": 523,
-     "end": 746,
+     "pulled": 265,
+     "start": 276,
+     "end": 497,
      "failed": true
     },
     {
      "task": 7,
      "ms": 110,
-     "pulled": 523,
-     "start": 543,
-     "end": 654
+     "pulled": 276,
+     "start": 388,
+     "end": 499
     },
     {
      "task": 8,
      "ms": 240,
-     "pulled": 543,
-     "start": 654,
-     "end": 895
+     "pulled": 388,
+     "start": 427,
+     "end": 678
     },
     {
      "task": 9,
      "ms": 150,
-     "pulled": 655,
-     "start": 746,
-     "end": 897
+     "pulled": 427,
+     "start": 497,
+     "end": 649
     }
    ],
-   "resolved": 897,
+   "resolved": 678,
    "errors": [
     {
-     "at": 746,
+     "at": 497,
      "message": "task 6 failed"
     }
    ],
    "sem": [
     {
-     "t": 0,
+     "t": 4,
      "type": "call",
      "who": 0
     },
     {
-     "t": 1,
+     "t": 4,
      "type": "Acquire",
      "who": 0,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 4,
      "type": "Acquired",
      "who": 0,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquire",
      "who": 0,
      "sem": "inExecution"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquired",
      "who": 0,
      "sem": "inExecution"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "work",
      "who": 0
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "call",
      "who": 1
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquire",
      "who": 1,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquired",
      "who": 1,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquire",
      "who": 1,
      "sem": "inExecution"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquired",
      "who": 1,
      "sem": "inExecution"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "work",
      "who": 1
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "call",
      "who": 2
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquire",
      "who": 2,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquired",
      "who": 2,
      "sem": "inFlight"
     },
     {
-     "t": 1,
+     "t": 5,
      "type": "Acquire",
      "who": 2,
      "sem": "inExecution"
     },
     {
-     "t": 122,
-     "type": "worked",
-     "who": 1
-    },
-    {
-     "t": 122,
-     "type": "Release",
-     "who": 1,
-     "sem": "inExecution"
-    },
-    {
-     "t": 122,
-     "type": "Release",
-     "who": 1,
-     "sem": "inFlight"
-    },
-    {
-     "t": 122,
+     "t": 5,
      "type": "Acquired",
      "who": 2,
      "sem": "inExecution"
     },
     {
-     "t": 122,
+     "t": 5,
      "type": "work",
      "who": 2
     },
     {
-     "t": 122,
+     "t": 5,
      "type": "call",
      "who": 3
     },
     {
-     "t": 122,
+     "t": 5,
      "type": "Acquire",
      "who": 3,
      "sem": "inFlight"
     },
     {
-     "t": 122,
+     "t": 5,
      "type": "Acquired",
      "who": 3,
      "sem": "inFlight"
     },
     {
-     "t": 122,
+     "t": 5,
      "type": "Acquire",
      "who": 3,
      "sem": "inExecution"
     },
     {
-     "t": 181,
+     "t": 134,
      "type": "worked",
-     "who": 0
+     "who": 1
     },
     {
-     "t": 181,
+     "t": 134,
      "type": "Release",
-     "who": 0,
+     "who": 1,
      "sem": "inExecution"
     },
     {
-     "t": 181,
+     "t": 134,
      "type": "Release",
-     "who": 0,
+     "who": 1,
      "sem": "inFlight"
     },
     {
-     "t": 181,
+     "t": 134,
      "type": "Acquired",
      "who": 3,
      "sem": "inExecution"
     },
     {
-     "t": 181,
+     "t": 134,
      "type": "work",
      "who": 3
     },
     {
-     "t": 181,
+     "t": 135,
      "type": "call",
      "who": 4
     },
     {
-     "t": 181,
+     "t": 135,
      "type": "Acquire",
      "who": 4,
      "sem": "inFlight"
     },
     {
-     "t": 181,
+     "t": 135,
      "type": "Acquired",
      "who": 4,
      "sem": "inFlight"
     },
     {
-     "t": 181,
+     "t": 135,
      "type": "Acquire",
      "who": 4,
      "sem": "inExecution"
     },
     {
-     "t": 321,
+     "t": 187,
      "type": "worked",
-     "who": 3
+     "who": 0
     },
     {
-     "t": 321,
+     "t": 187,
      "type": "Release",
-     "who": 3,
+     "who": 0,
      "sem": "inExecution"
     },
     {
-     "t": 321,
+     "t": 187,
      "type": "Release",
-     "who": 3,
+     "who": 0,
      "sem": "inFlight"
     },
     {
-     "t": 321,
+     "t": 187,
      "type": "Acquired",
      "who": 4,
      "sem": "inExecution"
     },
     {
-     "t": 322,
+     "t": 187,
      "type": "work",
      "who": 4
     },
     {
-     "t": 322,
+     "t": 187,
      "type": "call",
      "who": 5
     },
     {
-     "t": 322,
+     "t": 187,
      "type": "Acquire",
      "who": 5,
      "sem": "inFlight"
     },
     {
-     "t": 322,
+     "t": 187,
      "type": "Acquired",
      "who": 5,
      "sem": "inFlight"
     },
     {
-     "t": 322,
+     "t": 187,
      "type": "Acquire",
      "who": 5,
      "sem": "inExecution"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "worked",
      "who": 2
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Release",
      "who": 2,
      "sem": "inExecution"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Release",
      "who": 2,
      "sem": "inFlight"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Acquired",
      "who": 5,
      "sem": "inExecution"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "work",
      "who": 5
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "call",
      "who": 6
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Acquire",
      "who": 6,
      "sem": "inFlight"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Acquired",
      "who": 6,
      "sem": "inFlight"
     },
     {
-     "t": 383,
+     "t": 265,
      "type": "Acquire",
      "who": 6,
      "sem": "inExecution"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "worked",
-     "who": 4
+     "who": 3
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Release",
-     "who": 4,
+     "who": 3,
      "sem": "inExecution"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Release",
-     "who": 4,
+     "who": 3,
      "sem": "inFlight"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Acquired",
      "who": 6,
      "sem": "inExecution"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "work",
      "who": 6
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "call",
      "who": 7
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Acquire",
      "who": 7,
      "sem": "inFlight"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Acquired",
      "who": 7,
      "sem": "inFlight"
     },
     {
-     "t": 523,
+     "t": 276,
      "type": "Acquire",
      "who": 7,
      "sem": "inExecution"
     },
     {
-     "t": 543,
+     "t": 388,
+     "type": "worked",
+     "who": 4
+    },
+    {
+     "t": 388,
+     "type": "Release",
+     "who": 4,
+     "sem": "inExecution"
+    },
+    {
+     "t": 388,
+     "type": "Release",
+     "who": 4,
+     "sem": "inFlight"
+    },
+    {
+     "t": 388,
+     "type": "Acquired",
+     "who": 7,
+     "sem": "inExecution"
+    },
+    {
+     "t": 388,
+     "type": "work",
+     "who": 7
+    },
+    {
+     "t": 388,
+     "type": "call",
+     "who": 8
+    },
+    {
+     "t": 388,
+     "type": "Acquire",
+     "who": 8,
+     "sem": "inFlight"
+    },
+    {
+     "t": 388,
+     "type": "Acquired",
+     "who": 8,
+     "sem": "inFlight"
+    },
+    {
+     "t": 388,
+     "type": "Acquire",
+     "who": 8,
+     "sem": "inExecution"
+    },
+    {
+     "t": 427,
      "type": "worked",
      "who": 5
     },
     {
-     "t": 543,
+     "t": 427,
      "type": "Release",
      "who": 5,
      "sem": "inExecution"
     },
     {
-     "t": 543,
+     "t": 427,
      "type": "Release",
      "who": 5,
      "sem": "inFlight"
     },
     {
-     "t": 543,
-     "type": "Acquired",
-     "who": 7,
-     "sem": "inExecution"
-    },
-    {
-     "t": 543,
-     "type": "work",
-     "who": 7
-    },
-    {
-     "t": 543,
-     "type": "call",
-     "who": 8
-    },
-    {
-     "t": 543,
-     "type": "Acquire",
-     "who": 8,
-     "sem": "inFlight"
-    },
-    {
-     "t": 543,
-     "type": "Acquired",
-     "who": 8,
-     "sem": "inFlight"
-    },
-    {
-     "t": 543,
-     "type": "Acquire",
-     "who": 8,
-     "sem": "inExecution"
-    },
-    {
-     "t": 654,
-     "type": "worked",
-     "who": 7
-    },
-    {
-     "t": 654,
-     "type": "Release",
-     "who": 7,
-     "sem": "inExecution"
-    },
-    {
-     "t": 654,
-     "type": "Release",
-     "who": 7,
-     "sem": "inFlight"
-    },
-    {
-     "t": 654,
+     "t": 427,
      "type": "Acquired",
      "who": 8,
      "sem": "inExecution"
     },
     {
-     "t": 654,
+     "t": 427,
      "type": "work",
      "who": 8
     },
     {
-     "t": 655,
+     "t": 427,
      "type": "call",
      "who": 9
     },
     {
-     "t": 655,
+     "t": 427,
      "type": "Acquire",
      "who": 9,
      "sem": "inFlight"
     },
     {
-     "t": 655,
+     "t": 427,
      "type": "Acquired",
      "who": 9,
      "sem": "inFlight"
     },
     {
-     "t": 655,
+     "t": 427,
      "type": "Acquire",
      "who": 9,
      "sem": "inExecution"
     },
     {
-     "t": 746,
+     "t": 497,
      "type": "worked",
      "who": 6,
      "failed": true
     },
     {
-     "t": 746,
+     "t": 497,
      "type": "Release",
      "who": 6,
      "sem": "inExecution"
     },
     {
-     "t": 746,
+     "t": 497,
      "type": "Release",
      "who": 6,
      "sem": "inFlight"
     },
     {
-     "t": 746,
+     "t": 497,
      "type": "Acquired",
      "who": 9,
      "sem": "inExecution"
     },
     {
-     "t": 746,
+     "t": 497,
      "type": "work",
      "who": 9
     },
     {
-     "t": 895,
+     "t": 499,
      "type": "worked",
-     "who": 8
+     "who": 7
     },
     {
-     "t": 895,
+     "t": 499,
      "type": "Release",
-     "who": 8,
+     "who": 7,
      "sem": "inExecution"
     },
     {
-     "t": 895,
+     "t": 499,
      "type": "Release",
-     "who": 8,
+     "who": 7,
      "sem": "inFlight"
     },
     {
-     "t": 897,
+     "t": 649,
      "type": "worked",
      "who": 9
     },
     {
-     "t": 897,
+     "t": 649,
      "type": "Release",
      "who": 9,
      "sem": "inExecution"
     },
     {
-     "t": 897,
+     "t": 649,
      "type": "Release",
      "who": 9,
      "sem": "inFlight"
+    },
+    {
+     "t": 678,
+     "type": "worked",
+     "who": 8
+    },
+    {
+     "t": 678,
+     "type": "Release",
+     "who": 8,
+     "sem": "inExecution"
+    },
+    {
+     "t": 678,
+     "type": "Release",
+     "who": 8,
+     "sem": "inFlight"
     }
    ],
-   "peakExecution": 2,
-   "peakInFlight": 3
+   "peakExecution": 3,
+   "peakInFlight": 4
   }
  }
 }

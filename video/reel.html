@@ -225,7 +225,7 @@
   </div>
   <div class="layer" id="hud">
     <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
-    <div class="t" id="hudTL">ya-syn · v1.6.0</div>
+    <div class="t" id="hudTL"></div>
     <div class="t" id="hudTR"><span id="recDot"></span><span id="hudTime">00:00.00</span></div>
     <div class="t" id="hudBL"></div>
     <div class="t" id="hudBR">naive vs ya-syn</div>
@@ -293,9 +293,9 @@ const CALLOUT = [
   [`期限切れ直後の ${BURST_N} 件：自前は <b class="bad">fetch ×${burst('naive')}</b>、ya-syn は <b class="good">×${burst('yasyn')}</b>。`,
    `待った側は、ロックの中でキャッシュを見直す。`,
    `通して <b class="bad">${C.naive.fetches.length} 回</b> → <b class="good">${C.yasyn.fetches.length} 回</b>。`],
-  [`自前：<b class="bad">同時に ${T.naive.peakExecution} 本</b>、${T.naive.rejected}ms で reject。`,
-   `ya-syn：<b class="good">実行 ≤${T.yasyn.peakExecution}・保持 ≤${T.yasyn.peakInFlight}</b>。空いたぶんだけ読む。`,
-   `失敗は onTaskError へ。<b class="good">${done(T.yasyn.rows)} 件を最後まで</b>。`],
+  [`自前：${T.parallel} 本ずつ Promise.all。一番遅い 1 本を待つ間、<b class="bad">枠が空く</b>。`,
+   `ya-syn：空いた枠に<b class="good">すぐ次</b>が入る。どちらも並列 ${T.parallel}。`,
+   `終わるまで <b class="bad">${T.naive.resolved}ms</b> → <b class="good">${T.yasyn.resolved}ms</b>。`],
 ];
 
 // ---- コード（小さな色づけ） ----
@@ -368,10 +368,10 @@ const STEPS = [
     code: ['const sp = new SynchronizerProvider()', 'const rates = sp.createCachedProvider({', '  factory: () => fetchRates(),',
       `  defaultTTL: ${C.ttl},`, '})', 'await rates.get()  // 切れても fetch は 1 回'],
     area: `${C.requests.length} requests · TTL ${C.ttl}ms · fetch ${C.fetchMs}ms`, tagA: 'if (expired) v = await fetchRates()', tagB: 'rates.get()', callout: CALLOUT[1], clock: makeClock('cache', CACHE.span, 5.6) },
-  { id: 'tasks', num: '03', kicker: '03 · TaskExecutor', h: '流して、絞る。', sub: 'async generator を、上限を守って捌く。',
+  { id: 'tasks', num: '03', kicker: '03 · TaskExecutor', h: '流して、絞る。', sub: `同じ並列 ${T.parallel} でも、空いた枠をすぐ埋める。`,
     code: ['await sp.executeTasks({', `  maxTasksInFlight: ${T.inFlight},`, `  maxTasksInExecution: ${T.inExecution},`,
       '  taskSource: jobs(),  // async generator', '  taskExecutor: ({ task }) => run(task),', '  onTaskError: (e) => report(e),', '})'],
-    area: `${T.durs.length} tasks · #${T.fail + 1} fails`, tagA: 'await Promise.all(jobs.map(run))', tagB: 'sp.executeTasks(…)', callout: CALLOUT[2], clock: makeClock('tasks', TASKS.span, 5.6) },
+    area: `${T.durs.length} tasks · 並列 ${T.parallel} · #${T.fail + 1} fails`, tagA: `${T.parallel} 本ずつ await Promise.all(chunk)`, tagB: 'sp.executeTasks(…)', callout: CALLOUT[2], clock: makeClock('tasks', TASKS.span, 5.6) },
 ];
 // 段の長さは、再生の時計（受け渡しで止まる分を含む）から決める。
 // 段の中の時刻：0.0 入る / play0〜play1 記録を再生 / そのあと本文
@@ -468,12 +468,14 @@ function drawTasks(svg, kind, tt, idx = Infinity, holding = false) {
   const t = T[kind], p = [];
   axis(p, span, [0, 300, 600, 900], X);
   const y0 = 16, pitch = 19.5, bar = 12;
-  if (kind === 'naive' && tt >= t.rejected) {
-    p.push(`<rect x="${X(t.rejected)}" y="${PY0 - 4}" width="${X(Math.min(tt, span)) - X(t.rejected)}" height="${PY1 - PY0 + 4}" fill="#c9302c" fill-opacity=".06"/>`);
-    p.push(`<line x1="${X(t.rejected)}" y1="${PY0 - 4}" x2="${X(t.rejected)}" y2="${PY1}" stroke="#c9302c" stroke-width="2"/>`);
-    // 注記は、帯のない右側に置く
-    p.push(`<text x="${X(t.rejected) + 150}" y="${PY0 + 60}" font-size="15" font-weight="700" fill="#c9302c">Promise.all rejected</text>`);
-    p.push(`<text x="${X(t.rejected) + 150}" y="${PY0 + 80}" font-size="14" fill="#c9302c">— 残りは裏で走り続ける</text>`);
+  if (kind === 'naive') {
+    // 区切りの終わり（Promise.all が返る時刻）に縦の破線。先に終わった枠は、そこまで空いて待つ。
+    t.batches.forEach((b, n) => {
+      if (tt < b.end) return;
+      p.push(`<line x1="${X(b.end)}" y1="${PY0 - 4}" x2="${X(b.end)}" y2="${PY1}" stroke="#e0703a" stroke-width="1.2" stroke-dasharray="3 4" stroke-opacity=".7"/>`);
+      // 最初の区切りの右（task 1〜3 の行は、もう帯がない）に、点線の意味を書く
+      if (n === 0) p.push(`<text x="${X(b.end) + 10}" y="${y0 + 0.5 * pitch + 5}" font-size="13" fill="#e0703a">← 一番遅い 1 本を待って、枠が空く</text>`);
+    });
   }
   t.rows.forEach((r, i) => {
     const y = y0 + i * pitch;
@@ -490,8 +492,22 @@ function drawTasks(svg, kind, tt, idx = Infinity, holding = false) {
       p.push(`<rect x="${X(r.start)}" y="${y - bar / 2}" width="${Math.max(2, X(e) - X(r.start))}" height="${bar}" rx="4" fill="${col}"/>`);
       if (r.failed && tt >= r.end) p.push(`<text x="${X(r.end) + 8}" y="${y + 5}" font-size="14" font-weight="700" fill="#c9302c">✕ failed</text>`);
     }
+    // 自前：自分は終わったが、同じ区切りの一番遅い 1 本を待っている間（枠が空いている）
+    if (kind === 'naive' && tt > r.end) {
+      const b = t.batches.find((x) => r.task >= x.from && r.task < x.from + T.parallel);
+      const e = Math.min(b.end, tt);
+      if (e > r.end + 2 && !r.failed) p.push(`<line x1="${X(r.end) + 3}" y1="${y}" x2="${X(e)}" y2="${y}" stroke="#e0703a" stroke-width="2" stroke-dasharray="2 4" stroke-opacity=".55"/>`);
+    }
   });
   if (kind === 'yasyn') handoffLines(p, 'tasks', X, (w) => y0 + w * pitch, idx, holding);
+  // すべて終わった時刻
+  if (tt >= t.resolved) {
+    const col = kind === 'naive' ? '#e0703a' : '#2f6fdb';
+    p.push(`<line x1="${X(t.resolved)}" y1="${PY0 - 4}" x2="${X(t.resolved)}" y2="${PY1}" stroke="${col}" stroke-width="2"/>`);
+    const right = X(t.resolved) > PX1 - 130;   // 右端に近いときは、線の左に書く
+    // 自前は最後の区切り（task 10）が下の行にあるので、上端に書く
+    p.push(`<text x="${X(t.resolved) + (right ? -8 : 8)}" y="${kind === 'naive' ? PY0 + 12 : PY1 - 8}" text-anchor="${right ? 'end' : 'start'}" font-size="15" font-weight="700" fill="${col}">${t.resolved}ms で完了</text>`);
+  }
   playhead(p, X, tt, span, holding);
   svg.innerHTML = p.join('');
   const running = t.rows.filter((r) => r.start <= tt && tt < r.end).length;
@@ -580,6 +596,7 @@ $('#marquee').textContent = Array(8).fill('lazy · cache · tasks · lock · sem
 $('#endTag').innerHTML = VERT ? '非同期の「同時に」を、<br>正しくさばく。' : TAGLINE;
 $('#endFine').innerHTML = VERT ? 'github.com/tomohisaota/ya-syn<br>MIT · TypeScript · Node.js / Browser' : 'github.com/tomohisaota/ya-syn · MIT · TypeScript · Node.js / Browser';
 $('#hudBL').textContent = `trace · real runs · node ${TRACE.node}`;
+$('#hudTL').textContent = `ya-syn · v${TRACE.version}`;
 
 // ---- t 秒の絵 ----
 // ぶつかる → 見出し → 三つの段 → ほかにも → 締め
@@ -692,12 +709,10 @@ function render(t) {
       cB.innerHTML = `<small>fetch</small><span style="color:var(--accent)">×${nB}</span>`;
     } else {
       const a = drawTasks($('#chartA'), 'naive', tt), b = drawTasks($('#chartB'), 'yasyn', tt, idx, hold);
-      // 走り終えたあとは、記録の中の最大を出す
-      const nA = done > 0 ? T.naive.peakExecution : a.running;
-      const nB = done > 0 ? T.yasyn.peakExecution : b.running;
-      const hB = done > 0 ? T.yasyn.peakInFlight : b.held;
-      cA.innerHTML = `<small>${done > 0 ? 'peak' : 'running'}</small><span style="color:var(--naive)">${nA}</span>`;
-      cB.innerHTML = `<small>${done > 0 ? 'peak' : 'running'}</small><span style="color:var(--accent)">${nB}</span><small style="margin-left:18px">in flight</small><span style="color:var(--accent)">${hB}</span>`;
+      // 終わった本数。どちらも並列は 3 なので、差は「終わるまでの時間」に出る
+      const dn = (k) => T[k].rows.filter((r) => r.end <= tt).length;
+      cA.innerHTML = `<small>done</small><span style="color:var(--naive)">${dn('naive')}/${T.durs.length}</span>`;
+      cB.innerHTML = `<small>done</small><span style="color:var(--accent)">${dn('yasyn')}/${T.durs.length}</span>`;
     }
   }
   // 再生が終わったら、ya-syn の枠を青く縁取る
