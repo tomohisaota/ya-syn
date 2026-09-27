@@ -13,12 +13,13 @@
   **セマフォは説明の主役ではなく、脇役**
 - （4 回目）並列処理の動画は、ya-syn が遅いだけに見える。同時実行数を制限したループと比較すべき
   （最大並列 3 で、それぞれ Promise.all するようなイメージ）
+- （5 回目）英語版の動画も作る
 
 ## 作り
 
 - `reel.html` 一枚。`render(t)` が t 秒時点の見た目を決め打ちで描く純関数
   - プレビュー（requestAnimationFrame）と書き出し（1 コマずつ seek）で同じ絵になる
-  - `?v=1` で 9:16、`?render=1` で操作 UI なし・等倍表示
+  - `?v=1` で 9:16、`?render=1` で操作 UI なし・等倍表示、`?lang=en` で英語版（字幕と本文だけを `tr(ja, en)` で替える。記録と動きは同じ）
 - `render.mjs` が puppeteer-core で 1 コマずつ撮り、ffmpeg-static で mp4 にする
   - `reel.html` は `trace.json` を fetch する。`file://` では読めないので、リポジトリの根を配る
     小さな HTTP サーバーを立てて開く
@@ -36,6 +37,10 @@ npm run preview            # http://localhost:8790/video/reel.html（?v=1 で縦
 npm run stills             # out/stills-h-*.png を 0.5 秒おきに（--at=1.2,3.4 で時刻指定）
 npm run render             # out/ya-syn-reel-16x9.mp4（約 46 秒）
 npm run render:v           # out/ya-syn-reel-9x16.mp4
+npm run render:en          # out/ya-syn-reel-en-16x9.mp4（英語版）
+npm run render:en:v        # out/ya-syn-reel-en-9x16.mp4
+npm run clips              # out/clips/{lazy,cache,tasks}-{ja,en}.gif（wiki の各節に置く、カードだけのループ）
+node render.mjs --en --stills --at=3.6,15.8   # 英語版の静止画は out/stills-h-en-*.png
 ```
 
 直したら、まず `stills` で要所を画像で確かめてから `render` する（一本 数分かかる）。
@@ -100,6 +105,23 @@ npm run render:v           # out/ya-syn-reel-9x16.mp4
 - 下に 3 つの点の進み具合（01 LazyInitializer / 02 CachedProvider / 03 TaskExecutor）
 - 9:16 版は、段の見出しとコードを上、カードを下に積む
 
+## 英語版
+
+- 文言は日本語版の意味をそのまま移し、短く言い切る。見出しは「Create once.」「No stampede.」「Stream, capped.」、
+  見出しの下は「Called concurrently, initialized once.」「Even at expiry, fetch just once.」「Same parallelism of 3, no idle slots.」
+- 冒頭は「Are your `await`s colliding?」、合い言葉は「Concurrent async calls, handled right.」、自前のパネルは「Hand-rolled」
+- 本文の数は日本語版と同じく記録から組み立てる（`CALLOUT` の英語側）
+- 字幕を英語に替えると幅が変わる。コードのコメントがコードの枠からはみ出さないか、本文が進み具合の線にかからないかを静止画で確かめる
+- inline-block の末尾の空白は消えるので、二つに分けて出す字幕のあいだは `&nbsp;` でつなぐ
+
+## wiki に置くもの
+
+- 本編（16:9 の mp4）：GitHub の issue / PR のコメント欄に上げた `https://github.com/user-attachments/assets/…` を 1 行で置く。
+  `<video>` タグは GitHub の Markdown で消されるので使わない。README と wiki の冒頭（日本語版は Japanese.md、英語版は English.md）
+- 段ごとのループ（`npm run clips`）：カード（比べるタイムライン）だけを等倍 920×730 で、記録の再生の少し前から結果が出た少しあとまで。
+  15fps、1 本 200〜300KB。wiki リポジトリの `images/` に置き、`https://raw.githubusercontent.com/wiki/tomohisaota/ya-syn/images/<id>-<lang>.gif`
+  で LazyInitializer / CachedProvider / TaskExecutor の節の概要のすぐ下に。下に「上が素朴な実装、下が ya-syn。実際の記録」の一文
+
 ## してはいけないこと
 
 - 図の時刻や回数を作る（必ず trace.json から描く）
@@ -121,4 +143,5 @@ npm run render:v           # out/ya-syn-reel-9x16.mp4
   「サイトの計算エンジンを呼ぶ」の代わりに「ライブラリを実際に動かした記録を読む」にした
 - 2026-09-27 TaskExecutor の相手を「全部いっぺんに Promise.all」から「3 本ずつ Promise.all」に替えた。
   前者と比べると ya-syn が遅いだけに見えるため。あわせて ya-syn を実行 3 本にそろえ、v1.7.0 で記録を取り直した
+- 2026-09-27 英語版を足した（`?lang=en`、`--en`）
 - BGM は入れていない（音源があれば ffmpeg で重ねる）

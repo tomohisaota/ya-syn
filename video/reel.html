@@ -187,7 +187,7 @@
       <div id="card">
         <div id="cardHead"><span class="dots"><i></i><i></i><i></i></span><span class="logo">trace.json</span><span id="cardArea"></span><span id="cardPill">recorded · node</span></div>
         <div class="panel" id="panelA">
-          <div class="plabel"><span class="dot" style="background:var(--naive)"></span>自前で書くと<span class="tag" id="tagA"></span></div>
+          <div class="plabel"><span class="dot" style="background:var(--naive)"></span><span id="labelA">自前で書くと</span><span class="tag" id="tagA"></span></div>
           <div class="pcount" id="countA"></div>
           <svg class="pchart" id="chartA" viewBox="0 0 844 244"></svg>
         </div>
@@ -239,6 +239,10 @@ const TRACE = await (await fetch('./trace.json')).json();
 const params = new URLSearchParams(location.search);
 const VERT = params.has('v');
 const RENDER = params.has('render');
+// ?lang=en で英語版。字幕と本文だけを替え、記録と動きは同じ。
+const EN = params.get('lang') === 'en';
+const tr = (ja, en) => (EN ? en : ja);
+if (EN) document.documentElement.lang = 'en';
 const FPS = 30;
 const $ = (s) => document.querySelector(s);
 const stage = $('#stage');
@@ -286,7 +290,17 @@ const distinct = (a) => new Set(a).size;
 const burst = (k) => C[k].fetches.filter((f) => f.start >= C.requests[5] - 5).length;
 const BURST_N = C.requests.length - 5 - 2;
 const done = (rows) => rows.filter((r) => r.end !== undefined).length;
-const CALLOUT = [
+const CALLOUT = EN ? [
+  [`Hand-rolled: <b class="bad">connect() ×${L.naive.runs.length}</b> — ${distinct(L.naive.calls.map((c) => c.value))} separate connections.`,
+   `ya-syn: <b class="good">×${L.yasyn.runs.length}</b>. The rest wait for the lock and all get <b class="good">#${L.yasyn.calls[0].value}</b>.`,
+   `A circular dependency stops with a <b>${L.cycle.code}</b> error.`],
+  [`${BURST_N} calls right after expiry: hand-rolled <b class="bad">fetch ×${burst('naive')}</b>, ya-syn <b class="good">×${burst('yasyn')}</b>.`,
+   `Waiters re-check the cache inside the lock.`,
+   `Overall: <b class="bad">${C.naive.fetches.length} fetches</b> → <b class="good">${C.yasyn.fetches.length}</b>.`],
+  [`Hand-rolled: Promise.all, ${T.parallel} at a time. The slowest leaves <b class="bad">slots idle</b>.`,
+   `ya-syn: a freed slot takes the <b class="good">next task</b>. Both run ${T.parallel} at once.`,
+   `Done in <b class="bad">${T.naive.resolved}ms</b> → <b class="good">${T.yasyn.resolved}ms</b>.`],
+] : [
   [`自前：<b class="bad">connect() ×${L.naive.runs.length}</b>、接続が <b class="bad">${distinct(L.naive.calls.map((c) => c.value))} つ</b>できる。`,
    `ya-syn：<b class="good">×${L.yasyn.runs.length}</b>。残りは鍵を待ち、全員が <b class="good">#${L.yasyn.calls[0].value}</b> を受け取る。`,
    `循環依存は <b>${L.cycle.code}</b> の例外で止まる。`],
@@ -360,18 +374,18 @@ function makeClock(kind, span, linearSec) {
 // ---- 段 ----
 const S0 = 7.5;
 const STEPS = [
-  { id: 'lazy', num: '01', kicker: '01 · LazyInitializer', h: '一度だけ、作る。', sub: '同時に呼ばれても、初期化は 1 回。',
+  { id: 'lazy', num: '01', kicker: '01 · LazyInitializer', h: tr('一度だけ、作る。', 'Create once.'), sub: tr('同時に呼ばれても、初期化は 1 回。', 'Called concurrently, initialized once.'),
     code: ['import { LazyInitializer } from "ya-syn"', '', 'const db = new LazyInitializer(() => connect())', '',
-      'await db.get()  // 何度呼んでも connect() は 1 回'],
+      tr('await db.get()  // 何度呼んでも connect() は 1 回', 'await db.get()  // connect() runs only once')],
     area: `${L.callers.length} callers · connect ${L.connectMs}ms`, tagA: 'if (!db) db = await connect()', tagB: 'db.get()', callout: CALLOUT[0], clock: makeClock('lazy', LAZY.span, 5.2) },
-  { id: 'cache', num: '02', kicker: '02 · CachedProvider', h: '殺到させない。', sub: '期限切れの瞬間も、取りに行くのは 1 回。',
+  { id: 'cache', num: '02', kicker: '02 · CachedProvider', h: tr('殺到させない。', 'No stampede.'), sub: tr('期限切れの瞬間も、取りに行くのは 1 回。', 'Even at expiry, fetch just once.'),
     code: ['const sp = new SynchronizerProvider()', 'const rates = sp.createCachedProvider({', '  factory: () => fetchRates(),',
-      `  defaultTTL: ${C.ttl},`, '})', 'await rates.get()  // 切れても fetch は 1 回'],
+      `  defaultTTL: ${C.ttl},`, '})', tr('await rates.get()  // 切れても fetch は 1 回', 'await rates.get()  // one fetch, even when expired')],
     area: `${C.requests.length} requests · TTL ${C.ttl}ms · fetch ${C.fetchMs}ms`, tagA: 'if (expired) v = await fetchRates()', tagB: 'rates.get()', callout: CALLOUT[1], clock: makeClock('cache', CACHE.span, 5.6) },
-  { id: 'tasks', num: '03', kicker: '03 · TaskExecutor', h: '流して、絞る。', sub: `同じ並列 ${T.parallel} でも、空いた枠をすぐ埋める。`,
+  { id: 'tasks', num: '03', kicker: '03 · TaskExecutor', h: tr('流して、絞る。', 'Stream, capped.'), sub: tr(`同じ並列 ${T.parallel} でも、空いた枠をすぐ埋める。`, `Same parallelism of ${T.parallel}, no idle slots.`),
     code: ['await sp.executeTasks({', `  maxTasksInFlight: ${T.inFlight},`, `  maxTasksInExecution: ${T.inExecution},`,
       '  taskSource: jobs(),  // async generator', '  taskExecutor: ({ task }) => run(task),', '  onTaskError: (e) => report(e),', '})'],
-    area: `${T.durs.length} tasks · 並列 ${T.parallel} · #${T.fail + 1} fails`, tagA: `${T.parallel} 本ずつ await Promise.all(chunk)`, tagB: 'sp.executeTasks(…)', callout: CALLOUT[2], clock: makeClock('tasks', TASKS.span, 5.6) },
+    area: `${T.durs.length} tasks · ${tr('並列', 'parallel')} ${T.parallel} · #${T.fail + 1} fails`, tagA: tr(`${T.parallel} 本ずつ await Promise.all(chunk)`, `await Promise.all(chunk)  // ${T.parallel} at a time`), tagB: 'sp.executeTasks(…)', callout: CALLOUT[2], clock: makeClock('tasks', TASKS.span, 5.6) },
 ];
 // 段の長さは、再生の時計（受け渡しで止まる分を含む）から決める。
 // 段の中の時刻：0.0 入る / play0〜play1 記録を再生 / そのあと本文
@@ -474,7 +488,7 @@ function drawTasks(svg, kind, tt, idx = Infinity, holding = false) {
       if (tt < b.end) return;
       p.push(`<line x1="${X(b.end)}" y1="${PY0 - 4}" x2="${X(b.end)}" y2="${PY1}" stroke="#e0703a" stroke-width="1.2" stroke-dasharray="3 4" stroke-opacity=".7"/>`);
       // 最初の区切りの右（task 1〜3 の行は、もう帯がない）に、点線の意味を書く
-      if (n === 0) p.push(`<text x="${X(b.end) + 10}" y="${y0 + 0.5 * pitch + 5}" font-size="13" fill="#e0703a">← 一番遅い 1 本を待って、枠が空く</text>`);
+      if (n === 0) p.push(`<text x="${X(b.end) + 10}" y="${y0 + 0.5 * pitch + 5}" font-size="13" fill="#e0703a">${tr('← 一番遅い 1 本を待って、枠が空く', '← idle until the slowest ends')}</text>`);
     });
   }
   t.rows.forEach((r, i) => {
@@ -506,7 +520,7 @@ function drawTasks(svg, kind, tt, idx = Infinity, holding = false) {
     p.push(`<line x1="${X(t.resolved)}" y1="${PY0 - 4}" x2="${X(t.resolved)}" y2="${PY1}" stroke="${col}" stroke-width="2"/>`);
     const right = X(t.resolved) > PX1 - 130;   // 右端に近いときは、線の左に書く
     // 自前は最後の区切り（task 10）が下の行にあるので、上端に書く
-    p.push(`<text x="${X(t.resolved) + (right ? -8 : 8)}" y="${kind === 'naive' ? PY0 + 12 : PY1 - 8}" text-anchor="${right ? 'end' : 'start'}" font-size="15" font-weight="700" fill="${col}">${t.resolved}ms で完了</text>`);
+    p.push(`<text x="${X(t.resolved) + (right ? -8 : 8)}" y="${kind === 'naive' ? PY0 + 12 : PY1 - 8}" text-anchor="${right ? 'end' : 'start'}" font-size="15" font-weight="700" fill="${col}">${tr(`${t.resolved}ms で完了`, `done in ${t.resolved}ms`)}</text>`);
   }
   playhead(p, X, tt, span, holding);
   svg.innerHTML = p.join('');
@@ -530,10 +544,11 @@ function revealChars(list, t, start, gap = 0.045, dur = 0.5) {
     c.style.filter = `blur(${(1 - p) * 8}px)`;
   });
 }
-const TAGLINE = '非同期の「同時に」を、正しくさばく。';
+const TAGLINE = tr('非同期の「同時に」を、正しくさばく。', 'Concurrent async calls, handled right.');
+const TAGLINE_V = tr('非同期の「同時に」を、<br>正しくさばく。', 'Concurrent async calls,<br>handled right.');
 const s2h = chars($('#s2h'), 'ya-<em>syn</em>');
 const s2l = chars($('#s2l'), 'Yet Another Synchronizer for TypeScript');
-const s2p = chars($('#s2p'), VERT ? '非同期の「同時に」を、<br>正しくさばく。' : TAGLINE);
+const s2p = chars($('#s2p'), VERT ? TAGLINE_V : TAGLINE);
 
 // ---- 場面 1：漂う言葉 ----
 const WORDS = ['await', 'Promise.all', 'race condition', 'singleton', 'TTL', 'thundering herd', 'backpressure', 'mutex',
@@ -574,16 +589,16 @@ function drawCollide(t) {
 
 // ---- ほかにも ----
 const FEATS = [
-  ['lock · semaphore', 'synchronized()', 'n=1 でロック、n>1 でセマフォ'],
-  ['per key', 'forKey() / forObject()', 'キーやインスタンスごとに排他'],
-  ['limits', 'timeout() / throttle()', '待ちすぎ・詰まりすぎを例外に'],
-  ['reentrant', '再入の検出', 'Node.js では AsyncLocalStorage で追う'],
-  ['events', 'onEvent', 'Acquire → Release を統計つきで'],
-  ['generators', 'mergeAsyncGenerators', '複数の generator を一本にまとめる'],
+  ['lock · semaphore', 'synchronized()', tr('n=1 でロック、n>1 でセマフォ', 'n=1 is a lock, n>1 a semaphore')],
+  ['per key', 'forKey() / forObject()', tr('キーやインスタンスごとに排他', 'mutual exclusion per key or instance')],
+  ['limits', 'timeout() / throttle()', tr('待ちすぎ・詰まりすぎを例外に', 'fail fast instead of waiting forever')],
+  ['reentrant', tr('再入の検出', 'reentrancy detection'), tr('Node.js では AsyncLocalStorage で追う', 'tracked with AsyncLocalStorage on Node.js')],
+  ['events', 'onEvent', tr('Acquire → Release を統計つきで', 'Acquire → Release, with stats')],
+  ['generators', 'mergeAsyncGenerators', tr('複数の generator を一本にまとめる', 'merge several generators into one')],
 ];
 $('#featGrid').innerHTML = FEATS.map(([k, h, b]) => `<div class="fcard"><div class="k">${k}</div><div class="h">${h}</div><div class="b">${b}</div></div>`).join('');
 const featCards = [...document.querySelectorAll('.fcard')];
-const featH = chars($('#featH'), VERT ? 'ほかにも、<br><em>ya-syn</em> で。' : 'ほかにも、<em>ya-syn</em> で。');
+const featH = chars($('#featH'), VERT ? tr('ほかにも、<br><em>ya-syn</em> で。', 'And more,<br>with <em>ya-syn</em>.') : tr('ほかにも、<em>ya-syn</em> で。', 'And more, with <em>ya-syn</em>.'));
 const trackNodes = STEPS.map((s, i) => {
   const n = document.createElement('div');
   n.className = 'tnode';
@@ -593,7 +608,8 @@ const trackNodes = STEPS.map((s, i) => {
   return n;
 });
 $('#marquee').textContent = Array(8).fill('lazy · cache · tasks · lock · semaphore · ').join('');
-$('#endTag').innerHTML = VERT ? '非同期の「同時に」を、<br>正しくさばく。' : TAGLINE;
+$('#endTag').innerHTML = VERT ? TAGLINE_V : TAGLINE;
+$('#labelA').textContent = tr('自前で書くと', 'Hand-rolled');
 $('#endFine').innerHTML = VERT ? 'github.com/tomohisaota/ya-syn<br>MIT · TypeScript · Node.js / Browser' : 'github.com/tomohisaota/ya-syn · MIT · TypeScript · Node.js / Browser';
 $('#hudBL').textContent = `trace · real runs · node ${TRACE.node}`;
 $('#hudTL').textContent = `ya-syn · v${TRACE.version}`;
@@ -627,7 +643,7 @@ function render(t) {
   });
   const a1 = eOut(seg(t, 1.3, 2.1)), a2 = eOut(seg(t, 2.6, 3.4));
   const span = (a, html) => `<span style="opacity:${a};display:inline-block;transform:translateY(${(1 - a) * 20}px);filter:blur(${(1 - a) * 6}px)">${html}</span>`;
-  $('#s1text').innerHTML = span(a1, 'その <code>await</code>、') + (VERT ? '<br>' : '') + span(a2, 'ぶつかっていませんか。');
+  $('#s1text').innerHTML = span(a1, tr('その <code>await</code>、', `Are your <code>await</code>s${VERT ? '' : '&nbsp;'}`)) + (VERT ? '<br>' : '') + span(a2, tr('ぶつかっていませんか。', 'colliding?'));
 
   // --- 場面 2：見出し ---
   show($('#scene2'), seg(t, T1 + 0.3, T1 + 0.5) * (1 - seg(t, S0 - 0.35, S0)));
@@ -696,7 +712,7 @@ function render(t) {
       $('#semB').innerHTML = `${lock}inFlight ${fl.tasks}/${T.inFlight} · inExecution ${ex.running}/${T.inExecution}`;
     } else {
       const c = semCount(SEM[st.id], idx, null);
-      $('#semB').innerHTML = `${lock}${st.id === 'lazy' ? 'Semaphore' : 'Synchronizer'}(1) · 待ち ${c.waiting}`;
+      $('#semB').innerHTML = `${lock}${st.id === 'lazy' ? 'Semaphore' : 'Synchronizer'}(1) · ${tr('待ち', 'waiting')} ${c.waiting}`;
     }
     $('#semB').style.color = hold ? 'var(--accent)' : 'var(--ink3)';
     if (st.id === 'lazy') {
